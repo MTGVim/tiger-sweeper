@@ -6,6 +6,7 @@ import { HUD } from './components/HUD/HUD';
 import { Leaderboard } from './components/Leaderboard/Leaderboard';
 import { MiniMap } from './components/MiniMap/MiniMap';
 import type { LeaderboardEntry } from './components/Leaderboard/Leaderboard';
+import type { ThemeMode } from './core/types';
 import { useGame } from './context/GameContext';
 import { getProbabilityHints } from './core/ai';
 import { usePwa } from './hooks/usePwa';
@@ -15,6 +16,7 @@ import { messages, type AppLanguage } from './i18n/messages';
 const LEADERBOARD_KEY = 'tiger-sweeper:leaderboard:v1';
 const LANGUAGE_KEY = 'tiger-sweeper:language:v1';
 const STREAKS_KEY = 'tiger-sweeper:streaks:v1';
+const THEME_KEY = 'tiger-sweeper:theme:v1';
 const GITHUB_URL_PLACEHOLDER = 'https://github.com/MTGVim/tiger-sweeper';
 const difficultyRank: Record<LeaderboardEntry['difficulty'], number> = {
   easy: 0,
@@ -128,6 +130,7 @@ export const App = () => {
   const [mobileInputMode, setMobileInputMode] = useState<'open' | 'flag'>('open');
   const [controlsBodyCollapsed, setControlsBodyCollapsed] = useState(true);
   const [boardShakeSignal, setBoardShakeSignal] = useState(0);
+  const [themeHydrated, setThemeHydrated] = useState(false);
 
   usePwa();
 
@@ -226,6 +229,20 @@ export const App = () => {
   useEffect(() => {
     document.body.dataset.theme = state.theme;
   }, [state.theme]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(THEME_KEY);
+    const nextTheme: ThemeMode | null = saved === 'windowsXP' || saved === 'modern' ? saved : null;
+    if (nextTheme && nextTheme !== state.theme) {
+      dispatch({ type: 'SET_THEME', theme: nextTheme });
+    }
+    setThemeHydrated(true);
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!themeHydrated) return;
+    localStorage.setItem(THEME_KEY, state.theme);
+  }, [state.theme, themeHydrated]);
 
   useEffect(() => {
     const root = document.documentElement;
