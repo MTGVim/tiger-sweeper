@@ -57,6 +57,8 @@ export const App = () => {
   const { state, dispatch } = useGame();
   const play = useSound(state.soundPreset, state.soundVolume, state.soundEnabled);
   const prevStatusRef = useRef(state.status);
+  const prevLivesRef = useRef(state.lives);
+  const prevFlagCountRef = useRef(state.board.flat().filter((cell) => cell.isFlagged).length);
   const boardHostRef = useRef<HTMLDivElement | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => loadLeaderboard());
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -120,7 +122,9 @@ export const App = () => {
           return next;
         });
       }
-      if (state.status === 'lost') play('lose');
+      if (state.status === 'lost') {
+        window.setTimeout(() => play('lose'), 140);
+      }
       prevStatusRef.current = state.status;
     }
   }, [
@@ -135,6 +139,22 @@ export const App = () => {
   ]);
 
   useEffect(() => {
+    if (state.status !== 'won' && state.lives < prevLivesRef.current) {
+      play('explode');
+    }
+    prevLivesRef.current = state.lives;
+  }, [play, state.lives, state.status]);
+
+  useEffect(() => {
+    const flagCount = state.board.flat().filter((cell) => cell.isFlagged).length;
+    const flagPlaced = flagCount > prevFlagCountRef.current;
+    if (flagPlaced && !state.paused && !optionsOpen) {
+      play('flag');
+    }
+    prevFlagCountRef.current = flagCount;
+  }, [optionsOpen, play, state.board, state.paused]);
+
+  useEffect(() => {
     document.body.dataset.theme = state.theme;
   }, [state.theme]);
 
@@ -143,12 +163,6 @@ export const App = () => {
     root.style.setProperty('--cell-size', `${state.cellSize}px`);
     root.style.setProperty('--cell-font-size', `${Math.max(11, Math.floor(state.cellSize * 0.5))}px`);
   }, [state.cellSize]);
-
-  useEffect(() => {
-    if ((state.status === 'won' || state.status === 'lost') && optionsOpen) {
-      setOptionsOpen(false);
-    }
-  }, [optionsOpen, state.status]);
 
   useEffect(() => {
     localStorage.setItem(LANGUAGE_KEY, language);
@@ -345,7 +359,6 @@ export const App = () => {
                 return false;
               }
               dispatch({ type: 'TOGGLE_FLAG', x, y });
-              if (!state.paused && !optionsOpen) play('flag');
               return true;
             }}
           />

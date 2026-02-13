@@ -74,7 +74,7 @@ const createInitialState = (
   probabilityAssistUsed: options?.showProbabilities ?? false,
   theme: 'modern',
   soundEnabled: true,
-  soundVolume: 0.35,
+  soundVolume: 0.55,
   soundPreset: 'soft',
   cellSize: 28,
   startedAt: null,

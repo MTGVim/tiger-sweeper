@@ -1,5 +1,6 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Cell as CellType } from '../../core/types';
+import styles from './Cell.module.css';
 
 interface Props {
   cell: CellType;
@@ -42,10 +43,22 @@ export const Cell = ({
 }: Props) => {
   const touchTimerRef = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
+  const prevFlaggedRef = useRef(cell.isFlagged);
+  const [flagBurstToken, setFlagBurstToken] = useState(0);
+  const [showFlagBurst, setShowFlagBurst] = useState(false);
   const isClosedLike = obscured || !cell.isOpen;
 
+  useEffect(() => {
+    if (!obscured && !prevFlaggedRef.current && cell.isFlagged) {
+      setFlagBurstToken((v) => v + 1);
+      setShowFlagBurst(true);
+    }
+    prevFlaggedRef.current = cell.isFlagged;
+  }, [cell.isFlagged, obscured]);
+
   const className = [
-    'grid place-items-center rounded-none p-0 font-bold transition-transform duration-100',
+    'relative isolate grid place-items-center overflow-visible rounded-none p-0 font-bold transition-transform duration-100',
+    showFlagBurst ? 'z-30' : 'z-0',
     isClosedLike
       ? 'ui-button text-[color:var(--cell-text-closed)]'
       : 'cursor-default border border-[var(--cell-border)] bg-[var(--open)] text-[color:var(--cell-text-open)]',
@@ -143,7 +156,17 @@ export const Cell = ({
       }}
       aria-label={`cell-${cell.x}-${cell.y}`}
     >
-      <span className={!cell.isOpen && !cell.isFlagged && typeof mineProbability === 'number' ? 'text-[10px]' : ''}>{label}</span>
+      {showFlagBurst ? (
+        <span className={styles.flagBurstWrap} aria-hidden="true">
+          <span
+            key={`flag-burst-${flagBurstToken}`}
+            className={styles.flagBurstWave}
+            onAnimationEnd={() => setShowFlagBurst(false)}
+          />
+          <span key={`flag-core-${flagBurstToken}`} className={styles.flagBurstCore} />
+        </span>
+      ) : null}
+      <span className={`relative z-[1] ${!cell.isOpen && !cell.isFlagged && typeof mineProbability === 'number' ? 'text-[10px]' : ''}`}>{label}</span>
     </button>
   );
 };
