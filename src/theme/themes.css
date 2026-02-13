@@ -14,9 +14,11 @@
   --btn-lo: #8aa3cb;
   --grid-bg: #aeb9cf44;
   --cell-border: #8b98b2;
-  --closed: #d5deef;
-  --closed-hover: #becae0;
-  --open: #f4f7fb;
+  --closed: #97accd;
+  --closed-hover: #889fc4;
+  --open: #dfe9f8;
+  --cell-text-open: #102036;
+  --cell-text-closed: #3d506f;
   --mine: #e05252;
 }
 
@@ -39,5 +41,7 @@
   --closed: #c0c0c0;
   --closed-hover: #b0b0b0;
   --open: #dcdcdc;
+  --cell-text-open: #111111;
+  --cell-text-closed: #4b4b4b;
   --mine: #cc0000;
 }
