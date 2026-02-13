@@ -25,7 +25,7 @@ const createState = (board: Board): GameState => ({
   soundEnabled: false,
   soundVolume: 0,
   soundPreset: 'soft',
-  cellSize: 28,
+  cellSize: 26,
   startedAt: Date.now() - 1000,
   explodedCell: { x: 0, y: 0 }
 });

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { SoundPreset } from '../core/types';
 
 export type SoundEvent = 'click' | 'flag' | 'explode' | 'win' | 'lose';
@@ -114,11 +114,38 @@ const EXTERNAL_SOUND_URLS: Partial<Record<SoundEvent, string>> = {
 };
 
 export const useSound = (preset: SoundPreset, volume: number, enabled: boolean) => {
+  const externalAudioRef = useRef<Partial<Record<SoundEvent, HTMLAudioElement>>>({});
+  const synthCtxRef = useRef<Partial<Record<SoundEvent, AudioContext>>>({});
+  const synthTimerRef = useRef<Partial<Record<SoundEvent, number>>>({});
+
+  useEffect(() => {
+    return () => {
+      for (const event of Object.keys(externalAudioRef.current) as SoundEvent[]) {
+        const audio = externalAudioRef.current[event];
+        if (!audio) continue;
+        audio.pause();
+        audio.currentTime = 0;
+      }
+      for (const event of Object.keys(synthTimerRef.current) as SoundEvent[]) {
+        const timerId = synthTimerRef.current[event];
+        if (timerId != null) window.clearTimeout(timerId);
+      }
+      for (const event of Object.keys(synthCtxRef.current) as SoundEvent[]) {
+        void synthCtxRef.current[event]?.close();
+      }
+    };
+  }, []);
+
   const playSynth = useCallback((event: SoundEvent) => {
     const AudioCtx = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioCtx) return;
 
+    const prevTimer = synthTimerRef.current[event];
+    if (prevTimer != null) window.clearTimeout(prevTimer);
+    void synthCtxRef.current[event]?.close();
+
     const ctx = new AudioCtx();
+    synthCtxRef.current[event] = ctx;
     const notes = SOUNDS[preset][event];
     const eventGainMultiplier: Record<SoundEvent, number> = {
       click: 1,
@@ -146,7 +173,15 @@ export const useSound = (preset: SoundPreset, volume: number, enabled: boolean) 
     }
 
     const total = notes.reduce((max, n) => Math.max(max, n.at + n.dur), 0);
-    window.setTimeout(() => void ctx.close(), Math.ceil((total + 0.05) * 1000));
+    synthTimerRef.current[event] = window.setTimeout(() => {
+      if (synthCtxRef.current[event] === ctx) {
+        void ctx.close();
+        delete synthCtxRef.current[event];
+      } else {
+        void ctx.close();
+      }
+      delete synthTimerRef.current[event];
+    }, Math.ceil((total + 0.05) * 1000));
   }, [preset, volume]);
 
   return useCallback((event: SoundEvent) => {
@@ -157,8 +192,14 @@ export const useSound = (preset: SoundPreset, volume: number, enabled: boolean) 
       return;
     }
 
-    const audio = new Audio(externalUrl);
-    audio.preload = 'auto';
+    const cached = externalAudioRef.current[event];
+    const audio = cached ?? new Audio(externalUrl);
+    if (!cached) {
+      audio.preload = 'auto';
+      externalAudioRef.current[event] = audio;
+    }
+    audio.pause();
+    audio.currentTime = 0;
     audio.volume = Math.min(1, volume * 1.1);
     const p = audio.play();
     if (p && typeof p.catch === 'function') {

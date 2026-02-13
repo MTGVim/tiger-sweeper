@@ -11,10 +11,9 @@ import { useGame } from './context/GameContext';
 import { getProbabilityHints } from './core/ai';
 import { usePwa } from './hooks/usePwa';
 import { useSound } from './hooks/useSound';
-import { messages, type AppLanguage } from './i18n/messages';
+import { messages } from './i18n/messages';
 
 const LEADERBOARD_KEY = 'tiger-sweeper:leaderboard:v1';
-const LANGUAGE_KEY = 'tiger-sweeper:language:v1';
 const STREAKS_KEY = 'tiger-sweeper:streaks:v1';
 const THEME_KEY = 'tiger-sweeper:theme:v1';
 const GITHUB_URL_PLACEHOLDER = 'https://github.com/MTGVim/tiger-sweeper';
@@ -121,10 +120,6 @@ export const App = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => loadLeaderboard());
   const [streaks, setStreaks] = useState<StreaksByDifficulty>(() => loadStreaks());
   const [optionsOpen, setOptionsOpen] = useState(false);
-  const [language, setLanguage] = useState<AppLanguage>(() => {
-    const saved = localStorage.getItem(LANGUAGE_KEY);
-    return saved === 'en' ? 'en' : 'ko';
-  });
   const [pressedCells, setPressedCells] = useState<Set<string>>(new Set());
   const [boardHostWidth, setBoardHostWidth] = useState(0);
   const [controlsRightHeight, setControlsRightHeight] = useState(0);
@@ -252,10 +247,6 @@ export const App = () => {
   }, [state.cellSize]);
 
   useEffect(() => {
-    localStorage.setItem(LANGUAGE_KEY, language);
-  }, [language]);
-
-  useEffect(() => {
     const el = boardHostRef.current;
     if (!el) return;
 
@@ -309,6 +300,7 @@ export const App = () => {
 
   const handleNewGame = () => {
     dispatch({ type: 'RESET' });
+    if (state.status === 'won') return;
     setStreaks((prev) => {
       const next = breakWinStreakOnNewGame(prev, state.difficulty);
       if (next === prev) return prev;
@@ -353,24 +345,19 @@ export const App = () => {
   const preStart = state.status === 'idle';
   const pauseDisabled = preStart || (!state.paused && state.status !== 'playing');
   const autoSolveDisabled = false;
-  const t = messages[language];
+  const t = messages;
   const statusLabel = state.paused ? t.hud.status.paused : t.hud.status[state.status];
   const timerText = `${state.timer.toFixed(1)}s`;
   const probabilityHints = state.showProbabilities ? getProbabilityHints(state) : new Map<string, number>();
   const probabilityPrefix = state.probabilityAssistUsed ? '👀 ' : '';
   const currentStreak = streaks[state.difficulty];
+  const difficultyLabelForStreak = t.difficulty[state.difficulty];
   const streakLabel =
     currentStreak.kind == null || currentStreak.count === 0
-      ? language === 'ko'
-        ? '스트릭 없음'
-        : 'No streak'
+      ? `${difficultyLabelForStreak} 스트릭 없음`
       : currentStreak.kind === 'win'
-        ? language === 'ko'
-          ? `연승 ${currentStreak.count}`
-          : `Win x${currentStreak.count}`
-        : language === 'ko'
-          ? `연패 ${currentStreak.count}`
-          : `Lose x${currentStreak.count}`;
+        ? `${difficultyLabelForStreak} 연승 ${currentStreak.count}`
+        : `${difficultyLabelForStreak} 연패 ${currentStreak.count}`;
 
   return (
     <div className="grid min-h-screen place-items-center p-2 sm:p-4">
@@ -390,22 +377,7 @@ export const App = () => {
           </a>
         </div>
 
-        <Leaderboard
-          entries={leaderboard}
-          difficultyLabels={t.difficulty}
-          labels={t.leaderboard}
-          onClear={() => {
-            const ok = window.confirm('리더보드를 정말 초기화할까요?');
-            if (!ok) return;
-            setLeaderboard([]);
-            localStorage.removeItem(LEADERBOARD_KEY);
-          }}
-        />
-
-        <div className="sticky top-2 z-20 mt-3 rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-bold">{language === 'ko' ? '컨트롤' : 'Controls'}</h3>
-          </div>
+        <div className="sticky top-2 z-20 mt-5 mx-auto w-full max-w-[446px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
           <div className="flex items-start gap-2">
             <div className="w-[182px] min-w-[182px] flex-none">
               <div className="mb-1 rounded-md border border-[var(--border)] bg-white/75 px-2 py-1 text-[11px] font-bold leading-none">
@@ -455,7 +427,7 @@ export const App = () => {
           </div>
         </div>
 
-        <div ref={boardHostRef} className={`mt-3 w-full min-w-0 ${isMobile ? 'pb-20' : ''}`}>
+        <div ref={boardHostRef} className={`mt-5 w-full min-w-0 ${isMobile ? 'pb-20' : ''}`}>
           <Board
             board={state.board}
             cellSize={state.cellSize}
@@ -497,6 +469,20 @@ export const App = () => {
           />
         </div>
 
+        <div className="mx-auto mt-5 w-full max-w-[446px]">
+          <Leaderboard
+            entries={leaderboard}
+            difficultyLabels={t.difficulty}
+            labels={t.leaderboard}
+            onClear={() => {
+              const ok = window.confirm('리더보드를 정말 초기화할까요?');
+              if (!ok) return;
+              setLeaderboard([]);
+              localStorage.removeItem(LEADERBOARD_KEY);
+            }}
+          />
+        </div>
+
       </div>
 
       {optionsOpen ? (
@@ -517,34 +503,6 @@ export const App = () => {
                 {state.theme === 'modern' ? t.options.themeToXp : t.options.themeToModern}
               </button>
             </div>
-
-            <div className="mt-4 flex items-center justify-between gap-4">
-              <label htmlFor="language" className="text-sm font-semibold">{t.options.language}</label>
-              <select
-                id="language"
-                className="rounded border border-[var(--border)] bg-white px-2 py-1 text-sm"
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as AppLanguage)}
-              >
-                <option value="ko">{t.options.languageKo}</option>
-                <option value="en">{t.options.languageEn}</option>
-              </select>
-            </div>
-
-            <div className="mt-4 flex items-center justify-between gap-4">
-              <label htmlFor="cell-size" className="text-sm font-semibold">{t.options.cellSize}</label>
-              <span className="text-sm tabular-nums">{state.cellSize}px</span>
-            </div>
-            <input
-              id="cell-size"
-              type="range"
-              min={18}
-              max={40}
-              step={1}
-              value={state.cellSize}
-              onChange={(e) => dispatch({ type: 'SET_CELL_SIZE', size: Number(e.target.value) })}
-              className="mt-2 w-full"
-            />
 
             <div className="mt-4 flex items-center justify-between gap-4">
               <label htmlFor="sound-enabled" className="text-sm font-semibold">{t.options.sound}</label>
@@ -594,17 +552,13 @@ export const App = () => {
           onClick={() => setMobileInputMode((prev) => (prev === 'open' ? 'flag' : 'open'))}
           aria-pressed={mobileInputMode === 'flag'}
           aria-label={
-            language === 'ko'
-              ? mobileInputMode === 'open'
-                ? '현재 지뢰 모드, 탭하면 깃발 모드'
-                : '현재 깃발 모드, 탭하면 지뢰 모드'
-              : mobileInputMode === 'open'
-                ? 'Mine mode enabled, tap to switch to flag mode'
-                : 'Flag mode enabled, tap to switch to mine mode'
+            mobileInputMode === 'open'
+              ? '현재 지뢰 모드, 탭하면 깃발 모드'
+              : '현재 깃발 모드, 탭하면 지뢰 모드'
           }
         >
           <span>{mobileInputMode === 'open' ? '💣' : '🚩'}</span>
-          <span>{mobileInputMode === 'open' ? (language === 'ko' ? '지뢰' : 'Mine') : language === 'ko' ? '깃발' : 'Flag'}</span>
+          <span>{mobileInputMode === 'open' ? '지뢰' : '깃발'}</span>
         </button>
       ) : null}
 

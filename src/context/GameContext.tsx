@@ -29,13 +29,11 @@ type Action =
   | { type: 'AI_STEP' }
   | { type: 'HINT' }
   | { type: 'SET_THEME'; theme: ThemeMode }
-  | { type: 'SET_CELL_SIZE'; size: number }
   | { type: 'TOGGLE_PAUSE' }
   | { type: 'SET_SOUND_ENABLED'; enabled: boolean }
   | { type: 'SET_SOUND_VOLUME'; volume: number }
   | { type: 'SET_SOUND_PRESET'; preset: SoundPreset };
 
-const clampCellSize = (size: number): number => Math.max(18, Math.min(40, Math.round(size)));
 const clampVolume = (volume: number): number => Math.max(0, Math.min(1, volume));
 const clampAiSpeed = (speed: number): 1 | 2 | 4 => {
   if (speed >= 4) return 4;
@@ -75,7 +73,7 @@ const createInitialState = (
   soundEnabled: true,
   soundVolume: 0.55,
   soundPreset: 'soft',
-  cellSize: 28,
+  cellSize: 26,
   startedAt: null,
   explodedCell: null
 });
@@ -317,8 +315,6 @@ const reducer = (state: GameState, action: Action): GameState => {
     }
     case 'SET_THEME':
       return { ...state, theme: action.theme };
-    case 'SET_CELL_SIZE':
-      return { ...state, cellSize: clampCellSize(action.size) };
     case 'SET_SOUND_ENABLED':
       return { ...state, soundEnabled: action.enabled };
     case 'SET_SOUND_VOLUME':
