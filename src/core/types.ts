@@ -1,4 +1,4 @@
-export type Difficulty = 'easy' | 'normal' | 'hard' | 'veryHard';
+export type Difficulty = 'easy' | 'normal' | 'hard';
 export type GameStatus = 'idle' | 'playing' | 'won' | 'lost';
 export type ThemeMode = 'modern' | 'windowsXP';
 export type SoundPreset = 'soft' | 'retro' | 'arcade';

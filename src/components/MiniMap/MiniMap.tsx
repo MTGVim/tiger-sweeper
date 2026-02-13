@@ -24,25 +24,27 @@ export const MiniMap = ({ board }: Props) => {
 
   return (
     <div className="shrink-0 rounded-lg border border-[var(--border)] bg-white/75 px-2 py-1.5">
-      <div
-        className="mx-auto grid"
-        style={{
-          gap: `${gap}px`,
-          gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`
-        }}
-        aria-label="board-minimap"
-      >
-        {board.flat().map((cell) => (
-          <div
-            key={`minimap-${cell.x}-${cell.y}`}
-            style={{
-              width: `${cellSize}px`,
-              height: `${cellSize}px`,
-              background: cellBg(cell),
-              opacity: cell.isOpen ? 0.95 : cell.isFlagged ? 0.9 : 0.75
-            }}
-          />
-        ))}
+      <div className="flex justify-center">
+        <div
+          className="grid"
+          style={{
+            gap: `${gap}px`,
+            gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`
+          }}
+          aria-label="board-minimap"
+        >
+          {board.flat().map((cell) => (
+            <div
+              key={`minimap-${cell.x}-${cell.y}`}
+              style={{
+                width: `${cellSize}px`,
+                height: `${cellSize}px`,
+                background: cellBg(cell),
+                opacity: cell.isOpen ? 0.95 : cell.isFlagged ? 0.9 : 0.75
+              }}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -20,7 +20,7 @@ interface Props {
   onClear: () => void;
 }
 
-const difficultyOrder: Difficulty[] = ['easy', 'normal', 'hard', 'veryHard'];
+const difficultyOrder: Difficulty[] = ['easy', 'normal', 'hard'];
 const LEADERBOARD_TABLE_BASE_WIDTH = 460;
 const PAGE_SIZE = 10;
 type ModeFilter = 'none' | 'assist' | 'probability' | 'both';
@@ -33,8 +33,7 @@ export const Leaderboard = ({ entries, difficultyLabels, labels, onClear }: Prop
   const [pageByDifficulty, setPageByDifficulty] = useState<Record<Difficulty, number>>({
     easy: 1,
     normal: 1,
-    hard: 1,
-    veryHard: 1
+    hard: 1
   });
 
   useEffect(() => {
@@ -61,7 +60,7 @@ export const Leaderboard = ({ entries, difficultyLabels, labels, onClear }: Prop
   });
 
   return (
-    <section className="mt-4 min-w-0 overflow-hidden rounded-xl border border-[var(--border)] bg-white/70 p-3">
+    <section className="mt-4 min-w-0 overflow-hidden rounded-xl border border-[var(--border)] bg-white/70 px-2 py-3">
       <div className={`${collapsed ? 'mb-0' : 'mb-3'} flex flex-wrap items-center justify-between gap-2`}>
         <h3 className="min-w-0 text-sm font-bold sm:text-base">{labels.title}</h3>
         <div className="ml-auto flex shrink-0 items-center gap-1.5">

@@ -19,8 +19,11 @@ const GITHUB_URL_PLACEHOLDER = 'https://github.com/MTGVim/tiger-sweeper';
 const difficultyRank: Record<LeaderboardEntry['difficulty'], number> = {
   easy: 0,
   normal: 1,
-  hard: 2,
-  veryHard: 3
+  hard: 2
+};
+const normalizeDifficulty = (difficulty: unknown): LeaderboardEntry['difficulty'] => {
+  if (difficulty === 'easy' || difficulty === 'normal' || difficulty === 'hard') return difficulty;
+  return 'hard';
 };
 
 const sortLeaderboard = (entries: LeaderboardEntry[]): LeaderboardEntry[] =>
@@ -42,6 +45,7 @@ const loadLeaderboard = (): LeaderboardEntry[] => {
     return sortLeaderboard(
       parsed.map((entry) => ({
         ...entry,
+        difficulty: normalizeDifficulty(entry.difficulty),
         assists: typeof entry.assists === 'number' ? entry.assists : 0,
         lives: typeof entry.lives === 'number' ? entry.lives : 0,
         autoSolveUsed: Boolean(entry.autoSolveUsed),
@@ -61,8 +65,7 @@ type StreaksByDifficulty = Record<DifficultyKey, { kind: StreakKind; count: numb
 const createEmptyStreaks = (): StreaksByDifficulty => ({
   easy: { kind: null, count: 0 },
   normal: { kind: null, count: 0 },
-  hard: { kind: null, count: 0 },
-  veryHard: { kind: null, count: 0 }
+  hard: { kind: null, count: 0 }
 });
 
 const loadStreaks = (): StreaksByDifficulty => {
@@ -80,8 +83,7 @@ const loadStreaks = (): StreaksByDifficulty => {
     return {
       easy: normalize('easy'),
       normal: normalize('normal'),
-      hard: normalize('hard'),
-      veryHard: normalize('veryHard')
+      hard: normalize('hard')
     };
   } catch {
     return empty;
@@ -97,13 +99,21 @@ const applyStreak = (prev: StreaksByDifficulty, difficulty: DifficultyKey, resul
   };
 };
 
+const breakWinStreakOnNewGame = (prev: StreaksByDifficulty, difficulty: DifficultyKey): StreaksByDifficulty => {
+  const current = prev[difficulty];
+  if (current.kind !== 'win' || current.count <= 0) return prev;
+  return {
+    ...prev,
+    [difficulty]: { kind: null, count: 0 }
+  };
+};
+
 export const App = () => {
   const { state, dispatch } = useGame();
   const play = useSound(state.soundPreset, state.soundVolume, state.soundEnabled);
   const prevStatusRef = useRef(state.status);
   const prevLivesRef = useRef(state.lives);
   const prevFlagCountRef = useRef(state.board.flat().filter((cell) => cell.isFlagged).length);
-  const prevExplodedKeyRef = useRef<string | null>(null);
   const boardHostRef = useRef<HTMLDivElement | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => loadLeaderboard());
   const [streaks, setStreaks] = useState<StreaksByDifficulty>(() => loadStreaks());
@@ -116,6 +126,7 @@ export const App = () => {
   const [boardHostWidth, setBoardHostWidth] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileInputMode, setMobileInputMode] = useState<'open' | 'flag'>('open');
+  const [controlsBodyCollapsed, setControlsBodyCollapsed] = useState(true);
   const [boardShakeSignal, setBoardShakeSignal] = useState(0);
 
   usePwa();
@@ -198,17 +209,10 @@ export const App = () => {
   useEffect(() => {
     if (state.status !== 'won' && state.lives < prevLivesRef.current) {
       play('explode');
+      setBoardShakeSignal((v) => v + 1);
     }
     prevLivesRef.current = state.lives;
   }, [play, state.lives, state.status]);
-
-  useEffect(() => {
-    const key = state.explodedCell ? `${state.explodedCell.x},${state.explodedCell.y}` : null;
-    if (key && key !== prevExplodedKeyRef.current) {
-      setBoardShakeSignal((v) => v + 1);
-    }
-    prevExplodedKeyRef.current = key;
-  }, [state.explodedCell]);
 
   useEffect(() => {
     const flagCount = state.board.flat().filter((cell) => cell.isFlagged).length;
@@ -269,6 +273,16 @@ export const App = () => {
     if (isMobile) return;
     setMobileInputMode('open');
   }, [isMobile]);
+
+  const handleNewGame = () => {
+    dispatch({ type: 'RESET' });
+    setStreaks((prev) => {
+      const next = breakWinStreakOnNewGame(prev, state.difficulty);
+      if (next === prev) return prev;
+      localStorage.setItem(STREAKS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
 
   const openOptions = () => setOptionsOpen(true);
   const closeOptions = () => setOptionsOpen(false);
@@ -356,53 +370,80 @@ export const App = () => {
         />
 
         <div className="sticky top-2 z-20 mt-3 rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
-          <div className="flex items-start gap-2">
-            <div className="w-[182px] min-w-[182px] flex-none">
-              <div className="mb-1 rounded-md border border-[var(--border)] bg-white/75 px-2 py-1 text-[11px] font-bold leading-none">
-                {currentStreak.kind === 'win' ? '🔥' : currentStreak.kind === 'lose' ? '💥' : '➖'} {streakLabel}
-              </div>
-              <MiniMap board={state.board} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <DifficultySelector
-                difficulty={state.difficulty}
-                label={t.difficultyLabel}
-                labels={t.difficulty}
-                onChange={(difficulty) => dispatch({ type: 'SET_DIFFICULTY', difficulty })}
-              />
-
-              <div className="mt-2">
-                <HUD
-                  status={state.status}
-                  paused={state.paused}
-                  lives={state.lives}
-                  timer={state.timer}
-                  remainingMines={state.remainingMines}
-                  aiMode={state.aiMode}
-                  aiSpeed={state.aiSpeed}
-                  pauseDisabled={pauseDisabled}
-                  autoSolveDisabled={autoSolveDisabled}
-                  showProbabilities={state.showProbabilities}
-                  hideStatus
-                  labels={t.hud}
-                  onReset={() => dispatch({ type: 'RESET' })}
-                  onToggleAI={() => dispatch({ type: 'TOGGLE_AI' })}
-                  onAiSpeedChange={(speed) => dispatch({ type: 'SET_AI_SPEED', speed })}
-                  onToggleProbabilities={() =>
-                    dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: !state.showProbabilities })
-                  }
-                  onTogglePause={() => dispatch({ type: 'TOGGLE_PAUSE' })}
-                  onOpenOptions={openOptions}
-                />
-              </div>
-            </div>
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-sm font-bold">{language === 'ko' ? '컨트롤' : 'Controls'}</h3>
+            <button
+              className="ui-button rounded-md px-2 py-1 text-xs"
+              onClick={() => setControlsBodyCollapsed((prev) => !prev)}
+              aria-expanded={!controlsBodyCollapsed}
+              aria-label={language === 'ko' ? '컨트롤 접기/펼치기' : 'Toggle controls'}
+            >
+              {controlsBodyCollapsed ? '▼' : '▲'}
+            </button>
           </div>
-          <div className="mt-2 flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">
+          <div className="mb-2 flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">
             <span>⏱ {timerText}</span>
             <span>❤️ {state.lives}</span>
             <span>🚩 {state.remainingMines}</span>
             <span>{statusLabel}</span>
           </div>
+          {controlsBodyCollapsed ? (
+            <div className="rounded-xl border border-[var(--border)] bg-white/60 p-2 sm:p-3">
+              <div className="flex min-w-0 flex-wrap justify-end gap-1.5 sm:gap-2">
+                <button className="ui-button rounded-md px-3 py-2 text-sm" onClick={handleNewGame}>
+                  {t.hud.newGame}
+                </button>
+                <button className="ui-button rounded-md px-3 py-2 text-sm" onClick={() => dispatch({ type: 'TOGGLE_PAUSE' })} disabled={pauseDisabled}>
+                  {state.paused ? t.hud.resume : t.hud.pause}
+                </button>
+                <button className="ui-button rounded-md px-3 py-2 text-sm" onClick={openOptions}>
+                  {t.hud.options}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-2">
+              <div className="w-[182px] min-w-[182px] flex-none">
+                <div className="mb-1 rounded-md border border-[var(--border)] bg-white/75 px-2 py-1 text-[11px] font-bold leading-none">
+                  {currentStreak.kind === 'win' ? '🔥' : currentStreak.kind === 'lose' ? '💥' : '➖'} {streakLabel}
+                </div>
+                <MiniMap board={state.board} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <DifficultySelector
+                  difficulty={state.difficulty}
+                  label={t.difficultyLabel}
+                  labels={t.difficulty}
+                  onChange={(difficulty) => dispatch({ type: 'SET_DIFFICULTY', difficulty })}
+                />
+
+                <div className="mt-2">
+                  <HUD
+                    status={state.status}
+                    paused={state.paused}
+                    lives={state.lives}
+                    timer={state.timer}
+                    remainingMines={state.remainingMines}
+                    aiMode={state.aiMode}
+                    aiSpeed={state.aiSpeed}
+                    pauseDisabled={pauseDisabled}
+                    autoSolveDisabled={autoSolveDisabled}
+                    showProbabilities={state.showProbabilities}
+                    hideStatus
+                    labels={t.hud}
+                    onReset={handleNewGame}
+                    onToggleAI={() => dispatch({ type: 'TOGGLE_AI' })}
+                    onAiSpeedChange={(speed) => dispatch({ type: 'SET_AI_SPEED', speed })}
+                    onToggleProbabilities={() =>
+                      dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: !state.showProbabilities })
+                    }
+                    onTogglePause={() => dispatch({ type: 'TOGGLE_PAUSE' })}
+                    onOpenOptions={openOptions}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div ref={boardHostRef} className={`mt-3 w-full min-w-0 ${isMobile ? 'pb-20' : ''}`}>
