@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { Cell } from '../Cell/Cell';
 import type { Board as BoardType } from '../../core/types';
+import styles from './Board.module.css';
 
 interface Props {
   board: BoardType;
@@ -14,6 +16,7 @@ interface Props {
   hintCell?: { x: number; y: number } | null;
   pressedCells?: Set<string>;
   probabilityHints?: Map<string, number>;
+  shakeSignal?: number;
   onPressStart?: (x: number, y: number) => void;
   onPressEnd?: () => void;
   onOpen: (x: number, y: number) => void;
@@ -33,11 +36,13 @@ export const Board = ({
   hintCell = null,
   pressedCells = new Set<string>(),
   probabilityHints = new Map<string, number>(),
+  shakeSignal = 0,
   onPressStart,
   onPressEnd,
   onOpen,
   onFlag
 }: Props) => {
+  const [shaking, setShaking] = useState(false);
   const height = board.length;
   const width = board[0]?.length ?? 0;
   const gridGap = 1;
@@ -46,9 +51,16 @@ export const Board = ({
   const scaledWidth = Math.max(1, Math.round(boardPixelWidth * boardScale));
   const scaledHeight = Math.max(1, Math.round(boardPixelHeight * boardScale));
 
+  useEffect(() => {
+    if (shakeSignal <= 0) return;
+    setShaking(true);
+    const id = window.setTimeout(() => setShaking(false), 240);
+    return () => window.clearTimeout(id);
+  }, [shakeSignal]);
+
   return (
     <div className="w-full max-w-full pb-1">
-      <div className="relative mx-auto" style={{ width: scaledWidth, height: scaledHeight }}>
+      <div className={`relative mx-auto ${shaking ? styles.shake : ''}`} style={{ width: scaledWidth, height: scaledHeight }}>
         <div
           style={{
             width: boardPixelWidth,

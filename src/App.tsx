@@ -14,6 +14,7 @@ import { messages, type AppLanguage } from './i18n/messages';
 
 const LEADERBOARD_KEY = 'tiger-sweeper:leaderboard:v1';
 const LANGUAGE_KEY = 'tiger-sweeper:language:v1';
+const STREAKS_KEY = 'tiger-sweeper:streaks:v1';
 const GITHUB_URL_PLACEHOLDER = 'https://github.com/MTGVim/tiger-sweeper';
 const difficultyRank: Record<LeaderboardEntry['difficulty'], number> = {
   easy: 0,
@@ -53,14 +54,59 @@ const loadLeaderboard = (): LeaderboardEntry[] => {
   }
 };
 
+type DifficultyKey = LeaderboardEntry['difficulty'];
+type StreakKind = 'win' | 'lose' | null;
+type StreaksByDifficulty = Record<DifficultyKey, { kind: StreakKind; count: number }>;
+
+const createEmptyStreaks = (): StreaksByDifficulty => ({
+  easy: { kind: null, count: 0 },
+  normal: { kind: null, count: 0 },
+  hard: { kind: null, count: 0 },
+  veryHard: { kind: null, count: 0 }
+});
+
+const loadStreaks = (): StreaksByDifficulty => {
+  const empty = createEmptyStreaks();
+  try {
+    const raw = localStorage.getItem(STREAKS_KEY);
+    if (!raw) return empty;
+    const parsed = JSON.parse(raw) as Partial<StreaksByDifficulty>;
+    const normalize = (d: DifficultyKey) => {
+      const item = parsed[d];
+      const kind: StreakKind = item?.kind === 'win' || item?.kind === 'lose' ? item.kind : null;
+      const count = typeof item?.count === 'number' && item.count > 0 ? Math.floor(item.count) : 0;
+      return { kind: count > 0 ? kind : null, count: count > 0 ? count : 0 };
+    };
+    return {
+      easy: normalize('easy'),
+      normal: normalize('normal'),
+      hard: normalize('hard'),
+      veryHard: normalize('veryHard')
+    };
+  } catch {
+    return empty;
+  }
+};
+
+const applyStreak = (prev: StreaksByDifficulty, difficulty: DifficultyKey, result: 'win' | 'lose'): StreaksByDifficulty => {
+  const current = prev[difficulty];
+  const nextCount = current.kind === result ? current.count + 1 : 1;
+  return {
+    ...prev,
+    [difficulty]: { kind: result, count: nextCount }
+  };
+};
+
 export const App = () => {
   const { state, dispatch } = useGame();
   const play = useSound(state.soundPreset, state.soundVolume, state.soundEnabled);
   const prevStatusRef = useRef(state.status);
   const prevLivesRef = useRef(state.lives);
   const prevFlagCountRef = useRef(state.board.flat().filter((cell) => cell.isFlagged).length);
+  const prevExplodedKeyRef = useRef<string | null>(null);
   const boardHostRef = useRef<HTMLDivElement | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => loadLeaderboard());
+  const [streaks, setStreaks] = useState<StreaksByDifficulty>(() => loadStreaks());
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [language, setLanguage] = useState<AppLanguage>(() => {
     const saved = localStorage.getItem(LANGUAGE_KEY);
@@ -70,6 +116,7 @@ export const App = () => {
   const [boardHostWidth, setBoardHostWidth] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileInputMode, setMobileInputMode] = useState<'open' | 'flag'>('open');
+  const [boardShakeSignal, setBoardShakeSignal] = useState(0);
 
   usePwa();
 
@@ -77,6 +124,11 @@ export const App = () => {
     if (prevStatusRef.current !== state.status) {
       if (state.status === 'won') {
         play('win');
+        setStreaks((prev) => {
+          const next = applyStreak(prev, state.difficulty, 'win');
+          localStorage.setItem(STREAKS_KEY, JSON.stringify(next));
+          return next;
+        });
         confetti({
           particleCount: 120,
           spread: 90,
@@ -123,6 +175,11 @@ export const App = () => {
         });
       }
       if (state.status === 'lost') {
+        setStreaks((prev) => {
+          const next = applyStreak(prev, state.difficulty, 'lose');
+          localStorage.setItem(STREAKS_KEY, JSON.stringify(next));
+          return next;
+        });
         window.setTimeout(() => play('lose'), 140);
       }
       prevStatusRef.current = state.status;
@@ -144,6 +201,14 @@ export const App = () => {
     }
     prevLivesRef.current = state.lives;
   }, [play, state.lives, state.status]);
+
+  useEffect(() => {
+    const key = state.explodedCell ? `${state.explodedCell.x},${state.explodedCell.y}` : null;
+    if (key && key !== prevExplodedKeyRef.current) {
+      setBoardShakeSignal((v) => v + 1);
+    }
+    prevExplodedKeyRef.current = key;
+  }, [state.explodedCell]);
 
   useEffect(() => {
     const flagCount = state.board.flat().filter((cell) => cell.isFlagged).length;
@@ -244,6 +309,19 @@ export const App = () => {
   const t = messages[language];
   const probabilityHints = state.showProbabilities ? getProbabilityHints(state) : new Map<string, number>();
   const probabilityPrefix = state.probabilityAssistUsed ? '👀 ' : '';
+  const currentStreak = streaks[state.difficulty];
+  const streakLabel =
+    currentStreak.kind == null || currentStreak.count === 0
+      ? language === 'ko'
+        ? '스트릭 없음'
+        : 'No streak'
+      : currentStreak.kind === 'win'
+        ? language === 'ko'
+          ? `연승 ${currentStreak.count}`
+          : `Win x${currentStreak.count}`
+        : language === 'ko'
+          ? `연패 ${currentStreak.count}`
+          : `Lose x${currentStreak.count}`;
 
   return (
     <div className="grid min-h-screen place-items-center p-2 sm:p-4">
@@ -277,7 +355,12 @@ export const App = () => {
 
         <div className="sticky top-2 z-20 mt-3 rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
           <div className="flex items-start gap-2">
-            <MiniMap board={state.board} />
+            <div className="shrink-0">
+              <div className="mb-1 rounded-md border border-[var(--border)] bg-white/75 px-2 py-1 text-[11px] font-bold leading-none">
+                {currentStreak.kind === 'win' ? '🔥' : currentStreak.kind === 'lose' ? '💥' : '➖'} {streakLabel}
+              </div>
+              <MiniMap board={state.board} />
+            </div>
             <div className="min-w-0 flex-1">
               <DifficultySelector
                 difficulty={state.difficulty}
@@ -336,6 +419,7 @@ export const App = () => {
             hintCell={state.hintCell}
             pressedCells={pressedCells}
             probabilityHints={probabilityHints}
+            shakeSignal={boardShakeSignal}
             noticeMessage={
               state.status === 'won'
                 ? state.autoSolveUsed

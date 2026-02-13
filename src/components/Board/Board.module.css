@@ -18,3 +18,17 @@
   border-radius: 8px;
   background: #aeb9cf44;
 }
+
+.shake {
+  animation: board-shake 220ms ease-in-out;
+}
+
+@keyframes board-shake {
+  0% { transform: translateX(0); }
+  15% { transform: translateX(-5px) rotate(-0.3deg); }
+  30% { transform: translateX(4px) rotate(0.3deg); }
+  45% { transform: translateX(-3px) rotate(-0.2deg); }
+  60% { transform: translateX(3px) rotate(0.2deg); }
+  75% { transform: translateX(-2px); }
+  100% { transform: translateX(0); }
+}
