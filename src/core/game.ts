@@ -120,9 +120,9 @@ export const openSafeNeighborsFromNumber = (board: Board, x: number, y: number):
   if (!center || !center.isOpen || center.adjacentMines <= 0) return next;
 
   const neighbors = getNeighbors(next, x, y);
-  const flaggedCount = neighbors.filter((n) => n.isFlagged).length;
+  const resolvedMineCount = neighbors.filter((n) => n.isFlagged || (n.isOpen && n.isMine)).length;
   const unopened = neighbors.filter((n) => !n.isOpen && !n.isFlagged);
-  const remainingMines = center.adjacentMines - flaggedCount;
+  const remainingMines = center.adjacentMines - resolvedMineCount;
   if (remainingMines < 0) return next;
 
   if (remainingMines === unopened.length) {

@@ -26,6 +26,13 @@ export interface GameState {
   status: GameStatus;
   paused: boolean;
   pausedAt: number | null;
+  hintCell: { x: number; y: number } | null;
+  hintConfidence: number | null;
+  aiUncertain: boolean;
+  aiAssisted: boolean;
+  aiAssistCount: number;
+  autoSolveUsed: boolean;
+  lives: number;
   timer: number;
   remainingMines: number;
   difficulty: Difficulty;

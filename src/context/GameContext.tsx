@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useMemo, useReducer } from 'react
 import { DIFFICULTIES } from '../core/difficulties';
 import {
   checkWin,
-  countFlags,
   createEmptyBoard,
   openCell,
   openSafeNeighborsFromNumber,
@@ -10,7 +9,7 @@ import {
   revealAllMines,
   toggleFlag
 } from '../core/game';
-import { getAiMove } from '../core/ai';
+import { getUncertainHint } from '../core/ai';
 import type { Difficulty, GameState, SoundPreset, ThemeMode } from '../core/types';
 
 interface GameContextValue {
@@ -26,6 +25,7 @@ type Action =
   | { type: 'TICK' }
   | { type: 'TOGGLE_AI' }
   | { type: 'AI_STEP' }
+  | { type: 'HINT' }
   | { type: 'SET_THEME'; theme: ThemeMode }
   | { type: 'SET_CELL_SIZE'; size: number }
   | { type: 'TOGGLE_PAUSE' }
@@ -35,12 +35,23 @@ type Action =
 
 const clampCellSize = (size: number): number => Math.max(18, Math.min(40, Math.round(size)));
 const clampVolume = (volume: number): number => Math.max(0, Math.min(1, volume));
+const calculateRemainingMines = (board: GameState['board'], difficulty: Difficulty): number => {
+  const resolvedMines = board.flat().filter((cell) => cell.isMine && (cell.isOpen || cell.isFlagged)).length;
+  return Math.max(0, DIFFICULTIES[difficulty].mines - resolvedMines);
+};
 
 const createInitialState = (difficulty: Difficulty = 'easy'): GameState => ({
   board: createEmptyBoard(difficulty),
   status: 'idle',
   paused: false,
   pausedAt: null,
+  hintCell: null,
+  hintConfidence: null,
+  aiUncertain: false,
+  aiAssisted: false,
+  aiAssistCount: 0,
+  autoSolveUsed: false,
+  lives: 3,
   timer: 0,
   remainingMines: DIFFICULTIES[difficulty].mines,
   difficulty,
@@ -53,6 +64,18 @@ const createInitialState = (difficulty: Difficulty = 'easy'): GameState => ({
   startedAt: null,
   explodedCell: null
 });
+
+const findNewlyOpenedMine = (prevBoard: GameState['board'], nextBoard: GameState['board']) => {
+  for (let y = 0; y < nextBoard.length; y += 1) {
+    for (let x = 0; x < (nextBoard[0]?.length ?? 0); x += 1) {
+      const prev = prevBoard[y]?.[x];
+      const next = nextBoard[y]?.[x];
+      if (!prev || !next) continue;
+      if (next.isMine && next.isOpen && !prev.isOpen) return { x: next.x, y: next.y };
+    }
+  }
+  return null;
+};
 
 const applyOpenCell = (state: GameState, x: number, y: number): GameState => {
   const target = state.board[y]?.[x];
@@ -73,24 +96,48 @@ const applyOpenCell = (state: GameState, x: number, y: number): GameState => {
 
   if (target.isOpen) {
     board = openSafeNeighborsFromNumber(board, x, y);
-    const exploded = board.flat().find((cell) => cell.isOpen && cell.isMine);
+    const exploded = findNewlyOpenedMine(state.board, board);
     if (exploded) {
-      board = revealAllMines(board);
+      const lives = state.lives - 1;
       board[exploded.y][exploded.x].isExploded = true;
+      const remainingMines = calculateRemainingMines(board, state.difficulty);
+      if (lives <= 0) {
+        board = revealAllMines(board);
+        return {
+          ...state,
+          board,
+          remainingMines: 0,
+          hintCell: null,
+          hintConfidence: null,
+          aiUncertain: false,
+          status: 'lost',
+          lives: 0,
+          startedAt,
+          explodedCell: { x: exploded.x, y: exploded.y }
+        };
+      }
       return {
         ...state,
         board,
-        status: 'lost',
+        remainingMines,
+        hintCell: null,
+        hintConfidence: null,
+        aiUncertain: false,
+        status,
+        lives,
         startedAt,
         explodedCell: { x: exploded.x, y: exploded.y }
       };
     }
-    const remainingMines = DIFFICULTIES[state.difficulty].mines - countFlags(board);
+    const remainingMines = calculateRemainingMines(board, state.difficulty);
     const won = checkWin(board);
     return {
       ...state,
       board,
       remainingMines,
+      hintCell: null,
+      hintConfidence: null,
+      aiUncertain: false,
       status: won ? 'won' : status,
       startedAt,
       explodedCell
@@ -102,11 +149,32 @@ const applyOpenCell = (state: GameState, x: number, y: number): GameState => {
 
   if (opened?.isMine) {
     opened.isExploded = true;
-    board = revealAllMines(board);
+    const lives = state.lives - 1;
+    const remainingMines = calculateRemainingMines(board, state.difficulty);
+    if (lives <= 0) {
+      board = revealAllMines(board);
+      return {
+        ...state,
+        board,
+        remainingMines: 0,
+        hintCell: null,
+        hintConfidence: null,
+        aiUncertain: false,
+        status: 'lost',
+        lives: 0,
+        startedAt,
+        explodedCell: { x, y }
+      };
+    }
     return {
       ...state,
       board,
-      status: 'lost',
+      remainingMines,
+      hintCell: null,
+      hintConfidence: null,
+      aiUncertain: false,
+      status,
+      lives,
       startedAt,
       explodedCell: { x, y }
     };
@@ -116,6 +184,9 @@ const applyOpenCell = (state: GameState, x: number, y: number): GameState => {
   return {
     ...state,
     board,
+    hintCell: null,
+    hintConfidence: null,
+    aiUncertain: false,
     status: won ? 'won' : status,
     startedAt,
     explodedCell
@@ -129,8 +200,8 @@ const reducer = (state: GameState, action: Action): GameState => {
     case 'TOGGLE_FLAG': {
       if (state.paused || state.status === 'won' || state.status === 'lost') return state;
       const board = toggleFlag(state.board, action.x, action.y);
-      const remainingMines = DIFFICULTIES[state.difficulty].mines - countFlags(board);
-      return { ...state, board, remainingMines };
+      const remainingMines = calculateRemainingMines(board, state.difficulty);
+      return { ...state, board, remainingMines, hintCell: null, hintConfidence: null, aiUncertain: false };
     }
     case 'RESET':
       return createInitialState(action.difficulty ?? state.difficulty);
@@ -138,19 +209,37 @@ const reducer = (state: GameState, action: Action): GameState => {
       return createInitialState(action.difficulty);
     case 'TICK':
       if (state.paused || state.status !== 'playing' || state.startedAt == null) return state;
-      return { ...state, timer: Math.floor((Date.now() - state.startedAt) / 1000) };
+      return { ...state, timer: Number(((Date.now() - state.startedAt) / 1000).toFixed(1)) };
     case 'TOGGLE_AI':
       return { ...state, aiMode: !state.aiMode };
     case 'AI_STEP': {
       if (state.paused || state.status === 'won' || state.status === 'lost') return state;
-      const move = getAiMove(state);
-      if (!move) return state;
-      if (move.kind === 'flag') {
-        const board = toggleFlag(state.board, move.x, move.y);
-        const remainingMines = DIFFICULTIES[state.difficulty].mines - countFlags(board);
-        return { ...state, board, remainingMines };
+      const hint = getUncertainHint(state);
+      if (!hint || hint.mineProbability !== 0) return state;
+      const opened = applyOpenCell(state, hint.x, hint.y);
+      return { ...opened, aiAssisted: true, aiAssistCount: state.aiAssistCount + 1, autoSolveUsed: true };
+    }
+    case 'HINT': {
+      if (state.paused || state.status === 'won' || state.status === 'lost') return state;
+      const uncertain = getUncertainHint(state);
+      if (!uncertain) return { ...state, hintCell: null, hintConfidence: null, aiUncertain: true };
+      const nextHintCell = { x: uncertain.x, y: uncertain.y };
+      const nextMineProbability = uncertain.mineProbability;
+      const sameHint =
+        state.hintCell?.x === nextHintCell.x &&
+        state.hintCell?.y === nextHintCell.y &&
+        state.hintConfidence === nextMineProbability;
+      if (sameHint) {
+        return state;
       }
-      return applyOpenCell(state, move.x, move.y);
+      return {
+        ...state,
+        hintCell: nextHintCell,
+        hintConfidence: nextMineProbability,
+        aiUncertain: nextMineProbability > 0,
+        aiAssisted: true,
+        aiAssistCount: state.aiAssistCount + 1
+      };
     }
     case 'SET_THEME':
       return { ...state, theme: action.theme };
@@ -189,7 +278,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, createInitialState());
 
   useEffect(() => {
-    const id = window.setInterval(() => dispatch({ type: 'TICK' }), 250);
+    const id = window.setInterval(() => dispatch({ type: 'TICK' }), 100);
     return () => window.clearInterval(id);
   }, []);
 

@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/icon.svg'],
       manifest: {
-        name: 'Minesweeper PWA',
-        short_name: 'Minesweeper',
+        name: 'Tiger-Sweeper',
+        short_name: 'TigerSweeper',
         display: 'standalone',
         start_url: base,
         scope: base,
@@ -21,18 +21,22 @@ export default defineConfig({
         theme_color: '#111111',
         icons: [
           {
-            src: '/icons/icon.svg',
+            src: 'icons/icon.svg',
             sizes: '192x192',
             type: 'image/svg+xml'
           },
           {
-            src: '/icons/icon.svg',
+            src: 'icons/icon.svg',
             sizes: '512x512',
             type: 'image/svg+xml'
           }
         ]
       },
       workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+        navigateFallback: 'index.html',
         globPatterns: ['**/*.{js,css,html,png,svg}'],
         runtimeCaching: [
           {
@@ -44,6 +48,10 @@ export default defineConfig({
             handler: 'StaleWhileRevalidate'
           }
         ]
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module'
       }
     })
   ]
