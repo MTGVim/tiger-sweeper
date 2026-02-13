@@ -7,7 +7,7 @@ interface Props {
   timer: number;
   remainingMines: number;
   aiMode: boolean;
-  aiSpeed: 1 | 2 | 4 | 8;
+  aiSpeed: 1 | 2 | 4;
   pauseDisabled: boolean;
   autoSolveDisabled: boolean;
   showProbabilities: boolean;
@@ -25,7 +25,7 @@ interface Props {
   };
   onReset: () => void;
   onToggleAI: () => void;
-  onAiSpeedChange: (speed: 1 | 2 | 4 | 8) => void;
+  onAiSpeedChange: (speed: 1 | 2 | 4) => void;
   onToggleProbabilities: () => void;
   onTogglePause: () => void;
   onOpenOptions: () => void;
@@ -63,7 +63,6 @@ export const HUD = ({
           {paused ? labels.resume : labels.pause}
         </button>
         {hideOptionsButton ? null : <button className={buttonClass} onClick={onOpenOptions}>{labels.options}</button>}
-        <div className="basis-full" />
         <div className="relative inline-flex flex-col items-end">
           <button
             className={`${buttonClass} ml-auto ${aiMode ? 'bg-[var(--btn-bg-active)] shadow-[inset_-1px_-1px_0_var(--btn-hi),inset_1px_1px_0_var(--btn-lo)] translate-y-[1px]' : ''}`}
@@ -75,11 +74,11 @@ export const HUD = ({
           </button>
           {aiMode ? (
             <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-white/70 px-2 py-1 text-xs">
-              {[1, 2, 4, 8].map((speed) => (
+              {[1, 2, 4].map((speed) => (
                 <button
                   key={speed}
                   className={`rounded px-1.5 py-0.5 ${aiSpeed === speed ? 'bg-[var(--btn-bg-active)] font-semibold' : ''}`}
-                  onClick={() => onAiSpeedChange(speed as 1 | 2 | 4 | 8)}
+                  onClick={() => onAiSpeedChange(speed as 1 | 2 | 4)}
                   aria-pressed={aiSpeed === speed}
                 >
                   x{speed}

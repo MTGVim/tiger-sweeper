@@ -24,7 +24,7 @@ type Action =
   | { type: 'SET_DIFFICULTY'; difficulty: Difficulty }
   | { type: 'TICK' }
   | { type: 'TOGGLE_AI' }
-  | { type: 'SET_AI_SPEED'; speed: 1 | 2 | 4 | 8 }
+  | { type: 'SET_AI_SPEED'; speed: 1 | 2 | 4 }
   | { type: 'SET_SHOW_PROBABILITIES'; enabled: boolean }
   | { type: 'AI_STEP' }
   | { type: 'HINT' }
@@ -37,8 +37,7 @@ type Action =
 
 const clampCellSize = (size: number): number => Math.max(18, Math.min(40, Math.round(size)));
 const clampVolume = (volume: number): number => Math.max(0, Math.min(1, volume));
-const clampAiSpeed = (speed: number): 1 | 2 | 4 | 8 => {
-  if (speed >= 8) return 8;
+const clampAiSpeed = (speed: number): 1 | 2 | 4 => {
   if (speed >= 4) return 4;
   if (speed >= 2) return 2;
   return 1;
@@ -52,7 +51,7 @@ const hasWon = (board: GameState['board'], difficulty: Difficulty): boolean =>
 
 const createInitialState = (
   difficulty: Difficulty = 'easy',
-  options?: { aiMode?: boolean; aiSpeed?: 1 | 2 | 4 | 8; showProbabilities?: boolean }
+  options?: { aiMode?: boolean; aiSpeed?: 1 | 2 | 4; showProbabilities?: boolean }
 ): GameState => ({
   board: createEmptyBoard(difficulty),
   status: 'idle',
@@ -69,7 +68,7 @@ const createInitialState = (
   remainingMines: DIFFICULTIES[difficulty].mines,
   difficulty,
   aiMode: options?.aiMode ?? false,
-  aiSpeed: options?.aiSpeed ?? 1,
+  aiSpeed: options?.aiSpeed ?? 2,
   showProbabilities: options?.showProbabilities ?? false,
   probabilityAssistUsed: options?.showProbabilities ?? false,
   theme: 'modern',

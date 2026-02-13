@@ -2,9 +2,10 @@ import type { Board as BoardType } from '../../core/types';
 
 interface Props {
   board: BoardType;
+  maxHeight?: number;
 }
 
-export const MiniMap = ({ board }: Props) => {
+export const MiniMap = ({ board, maxHeight }: Props) => {
   const rows = board.length;
   const cols = board[0]?.length ?? 0;
   if (rows === 0 || cols === 0) return null;
@@ -12,8 +13,8 @@ export const MiniMap = ({ board }: Props) => {
   const dense = rows > 24 || cols > 18;
   const gap = dense ? 0 : 1;
   const maxWidth = 128;
-  const maxHeight = 170;
-  const cellSize = Math.max(2, Math.floor(Math.min(maxWidth / cols, maxHeight / rows)));
+  const heightLimit = Math.max(48, Math.floor((maxHeight ?? 170) - 14));
+  const cellSize = Math.max(2, Math.floor(Math.min(maxWidth / cols, heightLimit / rows)));
 
   const cellBg = (cell: BoardType[number][number]): string => {
     if (cell.isOpen && cell.isMine) return 'var(--mine)';

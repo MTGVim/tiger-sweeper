@@ -91,6 +91,11 @@ export const Cell = ({
     }
   };
 
+  useEffect(() => clearTouchTimer, []);
+  useEffect(() => {
+    if (obscured) clearTouchTimer();
+  }, [obscured]);
+
   const numberColor = !obscured && cell.isOpen ? numberClass(cell.adjacentMines) : '';
   const vibrate = () => {
     if (!enableLongPressHaptics || typeof navigator === 'undefined' || !('vibrate' in navigator)) return;
@@ -134,6 +139,7 @@ export const Cell = ({
       onTouchStart={() => {
         if (obscured) return;
         onPressStart?.(cell.x, cell.y);
+        if (interactionMode === 'flag') return;
         if (cell.isOpen) return;
         clearTouchTimer();
         touchTimerRef.current = window.setTimeout(() => {

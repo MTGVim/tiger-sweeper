@@ -37,7 +37,7 @@ export interface GameState {
   remainingMines: number;
   difficulty: Difficulty;
   aiMode: boolean;
-  aiSpeed: 1 | 2 | 4 | 8;
+  aiSpeed: 1 | 2 | 4;
   showProbabilities: boolean;
   probabilityAssistUsed: boolean;
   theme: ThemeMode;
