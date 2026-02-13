@@ -1,0 +1,62 @@
+# 🐯 Tiger-Sweeper
+
+React + TypeScript + Vite로 만든 마인스위퍼 웹앱입니다.  
+모바일 대응, PWA, 로컬 리더보드, 힌트/어시스트 기능을 포함합니다.
+
+## 주요 기능
+
+- 고전 마인스위퍼 플레이 (`쉬움/보통/어려움`)
+- 숫자 셀 클릭 시 주변 자동 열기(조건 충족 시)
+- `힌트` 및 `🤖 어시스트` 기능
+- 옵션에서 테마/셀 크기/사운드/언어 변경
+- `확률 표시 (기록X)` 모드
+  - 각 닫힌 셀에 추론 확률 표시
+  - 사용한 판은 리더보드 기록 제외
+- 로컬 리더보드 (난이도별, 페이지네이션)
+- PWA 지원 및 GitHub Pages 배포
+
+## 기술 스택
+
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+- vite-plugin-pwa (Workbox)
+- Vitest
+
+## 로컬 실행
+
+```bash
+yarn install
+yarn dev
+```
+
+개발 서버 실행 후 브라우저에서 표시되는 주소로 접속하세요.
+
+## 빌드 / 미리보기 / 테스트
+
+```bash
+yarn build      # 타입체크 + 프로덕션 빌드
+yarn preview    # 빌드 결과 로컬 확인
+yarn test       # 테스트 실행
+```
+
+## GitHub Pages 배포
+
+`main` 브랜치 푸시 시 `.github/workflows/deploy.yml`이 자동 실행되어 Pages에 배포됩니다.
+
+- 빌드 시 `BASE_PATH=/${repo-name}/`가 적용되도록 워크플로우에 설정되어 있습니다.
+- Pages 설정은 저장소에서 `GitHub Actions` 기반으로 활성화되어 있어야 합니다.
+
+## 프로젝트 구조(요약)
+
+- `src/core`: 게임 규칙/AI/확률 계산
+- `src/context`: 전역 상태(`useReducer`)
+- `src/components`: UI 컴포넌트
+- `src/hooks`: PWA, 사운드 등 훅
+- `src/i18n`: 한/영 메시지
+- `public`: 아이콘/파비콘 정적 자산
+
+## 라이선스
+
+필요 시 라이선스 파일(`LICENSE`)을 추가해 주세요.
