@@ -23,7 +23,6 @@ const createState = (board: Board): GameState => ({
   probabilityAssistUsed: true,
   theme: 'modern',
   soundEnabled: false,
-  soundVolume: 0,
   soundPreset: 'soft',
   cellSize: 26,
   startedAt: Date.now() - 1000,

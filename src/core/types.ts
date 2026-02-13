@@ -37,12 +37,11 @@ export interface GameState {
   remainingMines: number;
   difficulty: Difficulty;
   aiMode: boolean;
-  aiSpeed: 1 | 2 | 4;
+  aiSpeed: 1 | 2 | 4 | 8 | 16;
   showProbabilities: boolean;
   probabilityAssistUsed: boolean;
   theme: ThemeMode;
   soundEnabled: boolean;
-  soundVolume: number;
   soundPreset: SoundPreset;
   cellSize: number;
   startedAt: number | null;

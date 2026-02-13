@@ -12,6 +12,8 @@ import {
 import { getProbabilityHints, getUncertainHint } from '../core/ai';
 import type { Difficulty, GameState, SoundPreset, ThemeMode } from '../core/types';
 
+const UI_PREFS_KEY = 'tiger-sweeper:ui-prefs:v1';
+
 interface GameContextValue {
   state: GameState;
   dispatch: React.Dispatch<Action>;
@@ -24,18 +26,18 @@ type Action =
   | { type: 'SET_DIFFICULTY'; difficulty: Difficulty }
   | { type: 'TICK' }
   | { type: 'TOGGLE_AI' }
-  | { type: 'SET_AI_SPEED'; speed: 1 | 2 | 4 }
+  | { type: 'SET_AI_SPEED'; speed: 1 | 2 | 4 | 8 | 16 }
   | { type: 'SET_SHOW_PROBABILITIES'; enabled: boolean }
   | { type: 'AI_STEP' }
   | { type: 'HINT' }
   | { type: 'SET_THEME'; theme: ThemeMode }
   | { type: 'TOGGLE_PAUSE' }
   | { type: 'SET_SOUND_ENABLED'; enabled: boolean }
-  | { type: 'SET_SOUND_VOLUME'; volume: number }
   | { type: 'SET_SOUND_PRESET'; preset: SoundPreset };
 
-const clampVolume = (volume: number): number => Math.max(0, Math.min(1, volume));
-const clampAiSpeed = (speed: number): 1 | 2 | 4 => {
+const clampAiSpeed = (speed: number): 1 | 2 | 4 | 8 | 16 => {
+  if (speed >= 16) return 16;
+  if (speed >= 8) return 8;
   if (speed >= 4) return 4;
   if (speed >= 2) return 2;
   return 1;
@@ -47,9 +49,36 @@ const calculateRemainingMines = (board: GameState['board'], difficulty: Difficul
 const hasWon = (board: GameState['board'], difficulty: Difficulty): boolean =>
   checkWin(board) || calculateRemainingMines(board, difficulty) === 0;
 
+const loadUiPrefs = (): { difficulty: Difficulty; aiMode: boolean; aiSpeed: 1 | 2 | 4 | 8 | 16; showProbabilities: boolean } => {
+  const fallback = { difficulty: 'easy' as Difficulty, aiMode: false, aiSpeed: 2 as 1 | 2 | 4 | 8 | 16, showProbabilities: false };
+  try {
+    const raw = localStorage.getItem(UI_PREFS_KEY);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as Partial<{
+      difficulty: Difficulty;
+      aiMode: boolean;
+      aiSpeed: 1 | 2 | 4 | 8 | 16;
+      showProbabilities: boolean;
+    }>;
+    const difficulty =
+      parsed.difficulty === 'easy' || parsed.difficulty === 'normal' || parsed.difficulty === 'hard'
+        ? parsed.difficulty
+        : fallback.difficulty;
+    const aiSpeed = clampAiSpeed(Number(parsed.aiSpeed ?? fallback.aiSpeed));
+    return {
+      difficulty,
+      aiMode: Boolean(parsed.aiMode),
+      aiSpeed,
+      showProbabilities: Boolean(parsed.showProbabilities)
+    };
+  } catch {
+    return fallback;
+  }
+};
+
 const createInitialState = (
   difficulty: Difficulty = 'easy',
-  options?: { aiMode?: boolean; aiSpeed?: 1 | 2 | 4; showProbabilities?: boolean }
+  options?: { aiMode?: boolean; aiSpeed?: 1 | 2 | 4 | 8 | 16; showProbabilities?: boolean }
 ): GameState => ({
   board: createEmptyBoard(difficulty),
   status: 'idle',
@@ -71,7 +100,6 @@ const createInitialState = (
   probabilityAssistUsed: options?.showProbabilities ?? false,
   theme: 'modern',
   soundEnabled: true,
-  soundVolume: 0.55,
   soundPreset: 'soft',
   cellSize: 26,
   startedAt: null,
@@ -317,8 +345,6 @@ const reducer = (state: GameState, action: Action): GameState => {
       return { ...state, theme: action.theme };
     case 'SET_SOUND_ENABLED':
       return { ...state, soundEnabled: action.enabled };
-    case 'SET_SOUND_VOLUME':
-      return { ...state, soundVolume: clampVolume(action.volume) };
     case 'SET_SOUND_PRESET':
       return { ...state, soundPreset: action.preset };
     case 'TOGGLE_PAUSE': {
@@ -345,7 +371,14 @@ const reducer = (state: GameState, action: Action): GameState => {
 const GameContext = createContext<GameContextValue | null>(null);
 
 export const GameProvider = ({ children }: { children: React.ReactNode }) => {
-  const [state, dispatch] = useReducer(reducer, createInitialState());
+  const [state, dispatch] = useReducer(reducer, undefined, () => {
+    const prefs = loadUiPrefs();
+    return createInitialState(prefs.difficulty, {
+      aiMode: prefs.aiMode,
+      aiSpeed: prefs.aiSpeed,
+      showProbabilities: prefs.showProbabilities
+    });
+  });
 
   useEffect(() => {
     const id = window.setInterval(() => dispatch({ type: 'TICK' }), 100);
@@ -359,6 +392,18 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     const id = window.setInterval(() => dispatch({ type: 'AI_STEP' }), Math.max(30, Math.round(400 / state.aiSpeed)));
     return () => window.clearInterval(id);
   }, [state.aiMode, state.aiSpeed, state.paused, state.status]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      UI_PREFS_KEY,
+      JSON.stringify({
+        difficulty: state.difficulty,
+        aiMode: state.aiMode,
+        aiSpeed: state.aiSpeed,
+        showProbabilities: state.showProbabilities
+      })
+    );
+  }, [state.difficulty, state.aiMode, state.aiSpeed, state.showProbabilities]);
 
   const value = useMemo(() => ({ state, dispatch }), [state]);
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

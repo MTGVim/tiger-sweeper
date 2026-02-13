@@ -113,7 +113,9 @@ const EXTERNAL_SOUND_URLS: Partial<Record<SoundEvent, string>> = {
   lose: '/sounds/ocean-meme.mp3'
 };
 
-export const useSound = (preset: SoundPreset, volume: number, enabled: boolean) => {
+const DEFAULT_SOUND_VOLUME = 0.65;
+
+export const useSound = (preset: SoundPreset, enabled: boolean) => {
   const externalAudioRef = useRef<Partial<Record<SoundEvent, HTMLAudioElement>>>({});
   const synthCtxRef = useRef<Partial<Record<SoundEvent, AudioContext>>>({});
   const synthTimerRef = useRef<Partial<Record<SoundEvent, number>>>({});
@@ -162,7 +164,7 @@ export const useSound = (preset: SoundPreset, volume: number, enabled: boolean) 
 
       osc.type = waveByEvent[event] ?? waveByPreset[preset];
       osc.frequency.value = note.freq;
-      gain.gain.setValueAtTime(Math.min(0.22, volume * 0.11 * eventGainMultiplier[event]), startAt);
+      gain.gain.setValueAtTime(Math.min(0.22, DEFAULT_SOUND_VOLUME * 0.11 * eventGainMultiplier[event]), startAt);
       gain.gain.exponentialRampToValueAtTime(0.001, endAt);
 
       osc.connect(gain);
@@ -182,10 +184,10 @@ export const useSound = (preset: SoundPreset, volume: number, enabled: boolean) 
       }
       delete synthTimerRef.current[event];
     }, Math.ceil((total + 0.05) * 1000));
-  }, [preset, volume]);
+  }, [preset]);
 
   return useCallback((event: SoundEvent) => {
-    if (!enabled || volume <= 0) return;
+    if (!enabled) return;
     const externalUrl = EXTERNAL_SOUND_URLS[event];
     if (!externalUrl) {
       playSynth(event);
@@ -200,10 +202,10 @@ export const useSound = (preset: SoundPreset, volume: number, enabled: boolean) 
     }
     audio.pause();
     audio.currentTime = 0;
-    audio.volume = Math.min(1, volume * 1.1);
+    audio.volume = Math.min(1, DEFAULT_SOUND_VOLUME * 1.1);
     const p = audio.play();
     if (p && typeof p.catch === 'function') {
       p.catch(() => playSynth(event));
     }
-  }, [enabled, playSynth, volume]);
+  }, [enabled, playSynth]);
 };

@@ -7,7 +7,7 @@ interface Props {
   timer: number;
   remainingMines: number;
   aiMode: boolean;
-  aiSpeed: 1 | 2 | 4;
+  aiSpeed: 1 | 2 | 4 | 8 | 16;
   pauseDisabled: boolean;
   autoSolveDisabled: boolean;
   showProbabilities: boolean;
@@ -25,7 +25,7 @@ interface Props {
   };
   onReset: () => void;
   onToggleAI: () => void;
-  onAiSpeedChange: (speed: 1 | 2 | 4) => void;
+  onAiSpeedChange: (speed: 1 | 2 | 4 | 8 | 16) => void;
   onToggleProbabilities: () => void;
   onTogglePause: () => void;
   onOpenOptions: () => void;
@@ -76,11 +76,11 @@ export const HUD = ({
           </button>
           {aiMode ? (
             <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-white/70 px-2 py-1 text-xs">
-              {[1, 2, 4].map((speed) => (
+              {[1, 2, 4, 8, 16].map((speed) => (
                 <button
                   key={speed}
                   className={`rounded px-1.5 py-0.5 ${aiSpeed === speed ? 'bg-[var(--btn-bg-active)] font-semibold' : ''}`}
-                  onClick={() => onAiSpeedChange(speed as 1 | 2 | 4)}
+                  onClick={() => onAiSpeedChange(speed as 1 | 2 | 4 | 8 | 16)}
                   aria-pressed={aiSpeed === speed}
                 >
                   x{speed}

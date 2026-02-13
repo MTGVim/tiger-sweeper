@@ -4,7 +4,6 @@ import { Board } from './components/Board/Board';
 import { DifficultySelector } from './components/DifficultySelector/DifficultySelector';
 import { HUD } from './components/HUD/HUD';
 import { Leaderboard } from './components/Leaderboard/Leaderboard';
-import { MiniMap } from './components/MiniMap/MiniMap';
 import type { LeaderboardEntry } from './components/Leaderboard/Leaderboard';
 import type { ThemeMode } from './core/types';
 import { useGame } from './context/GameContext';
@@ -111,18 +110,16 @@ const breakWinStreakOnNewGame = (prev: StreaksByDifficulty, difficulty: Difficul
 
 export const App = () => {
   const { state, dispatch } = useGame();
-  const play = useSound(state.soundPreset, state.soundVolume, state.soundEnabled);
+  const play = useSound(state.soundPreset, state.soundEnabled);
   const prevStatusRef = useRef(state.status);
   const prevLivesRef = useRef(state.lives);
   const prevFlagCountRef = useRef(state.board.flat().filter((cell) => cell.isFlagged).length);
   const boardHostRef = useRef<HTMLDivElement | null>(null);
-  const controlsRightRef = useRef<HTMLDivElement | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => loadLeaderboard());
   const [streaks, setStreaks] = useState<StreaksByDifficulty>(() => loadStreaks());
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [pressedCells, setPressedCells] = useState<Set<string>>(new Set());
   const [boardHostWidth, setBoardHostWidth] = useState(0);
-  const [controlsRightHeight, setControlsRightHeight] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileInputMode, setMobileInputMode] = useState<'open' | 'flag'>('open');
   const [boardShakeSignal, setBoardShakeSignal] = useState(0);
@@ -262,21 +259,6 @@ export const App = () => {
   }, []);
 
   useEffect(() => {
-    const el = controlsRightRef.current;
-    if (!el) return;
-
-    const update = () => setControlsRightHeight(el.getBoundingClientRect().height);
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(el);
-    window.addEventListener('resize', update);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', update);
-    };
-  }, []);
-
-  useEffect(() => {
     const updateViewportMode = () => {
       const canMatch = typeof window.matchMedia === 'function';
       const coarsePointer = canMatch ? window.matchMedia('(pointer: coarse)').matches : false;
@@ -377,53 +359,49 @@ export const App = () => {
           </a>
         </div>
 
-        <div className="sticky top-2 z-20 mt-5 mx-auto w-full max-w-[446px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
-          <div className="flex items-start gap-2">
-            <div className="w-[182px] min-w-[182px] flex-none">
-              <div className="mb-1 rounded-md border border-[var(--border)] bg-white/75 px-2 py-1 text-[11px] font-bold leading-none">
-                {currentStreak.kind === 'win' ? '🔥' : currentStreak.kind === 'lose' ? '💥' : '➖'} {streakLabel}
-              </div>
-              <MiniMap board={state.board} maxHeight={controlsRightHeight > 0 ? controlsRightHeight - 26 : undefined} />
-            </div>
-            <div ref={controlsRightRef} className="min-w-0 flex-1">
-              <DifficultySelector
-                difficulty={state.difficulty}
-                label={t.difficultyLabel}
-                labels={t.difficulty}
-                onChange={(difficulty) => dispatch({ type: 'SET_DIFFICULTY', difficulty })}
-              />
+        <div className="mt-4 mx-auto w-full max-w-[446px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
+          <DifficultySelector
+            difficulty={state.difficulty}
+            label={t.difficultyLabel}
+            labels={t.difficulty}
+            onChange={(difficulty) => dispatch({ type: 'SET_DIFFICULTY', difficulty })}
+          />
 
-              <div className="mt-2">
-                <HUD
-                  status={state.status}
-                  paused={state.paused}
-                  lives={state.lives}
-                  timer={state.timer}
-                  remainingMines={state.remainingMines}
-                  aiMode={state.aiMode}
-                  aiSpeed={state.aiSpeed}
-                  pauseDisabled={pauseDisabled}
-                  autoSolveDisabled={autoSolveDisabled}
-                  showProbabilities={state.showProbabilities}
-                  hideStatus
-                  labels={t.hud}
-                  onReset={handleNewGame}
-                  onToggleAI={() => dispatch({ type: 'TOGGLE_AI' })}
-                  onAiSpeedChange={(speed) => dispatch({ type: 'SET_AI_SPEED', speed })}
-                  onToggleProbabilities={() =>
-                    dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: !state.showProbabilities })
-                  }
-                  onTogglePause={() => dispatch({ type: 'TOGGLE_PAUSE' })}
-                  onOpenOptions={openOptions}
-                />
-              </div>
-            </div>
+          <div className="mt-2">
+            <HUD
+              status={state.status}
+              paused={state.paused}
+              lives={state.lives}
+              timer={state.timer}
+              remainingMines={state.remainingMines}
+              aiMode={state.aiMode}
+              aiSpeed={state.aiSpeed}
+              pauseDisabled={pauseDisabled}
+              autoSolveDisabled={autoSolveDisabled}
+              showProbabilities={state.showProbabilities}
+              hideStatus
+              labels={t.hud}
+              onReset={handleNewGame}
+              onToggleAI={() => dispatch({ type: 'TOGGLE_AI' })}
+              onAiSpeedChange={(speed) => dispatch({ type: 'SET_AI_SPEED', speed })}
+              onToggleProbabilities={() =>
+                dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: !state.showProbabilities })
+              }
+              onTogglePause={() => dispatch({ type: 'TOGGLE_PAUSE' })}
+              onOpenOptions={openOptions}
+            />
           </div>
+        </div>
+
+        <div className="sticky top-2 z-20 mt-3 mx-auto w-full max-w-[446px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
           <div className="mt-2 flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">
             <span>⏱ {timerText}</span>
             <span>❤️ {state.lives}</span>
             <span>🚩 {state.remainingMines}</span>
             <span>{statusLabel}</span>
+          </div>
+          <div className="mt-1 rounded-md border border-[var(--border)] bg-white/75 px-2 py-1 text-[11px] font-bold leading-none">
+            {currentStreak.kind === 'win' ? '🔥' : currentStreak.kind === 'lose' ? '💥' : '➖'} {streakLabel}
           </div>
         </div>
 
@@ -469,7 +447,7 @@ export const App = () => {
           />
         </div>
 
-        <div className="mx-auto mt-5 w-full max-w-[446px]">
+        <div className="mx-auto mt-4 w-full max-w-[446px]">
           <Leaderboard
             entries={leaderboard}
             difficultyLabels={t.difficulty}
@@ -528,20 +506,6 @@ export const App = () => {
               </select>
             </div>
 
-            <div className="mt-3 flex items-center justify-between gap-4">
-              <label htmlFor="sound-volume" className="text-sm font-semibold">{t.options.volume}</label>
-              <span className="text-sm tabular-nums">{Math.round(state.soundVolume * 100)}%</span>
-            </div>
-            <input
-              id="sound-volume"
-              type="range"
-              min={0}
-              max={100}
-              step={1}
-              value={Math.round(state.soundVolume * 100)}
-              onChange={(e) => dispatch({ type: 'SET_SOUND_VOLUME', volume: Number(e.target.value) / 100 })}
-              className="mt-2 w-full"
-            />
           </div>
         </div>
       ) : null}

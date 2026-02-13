@@ -50,7 +50,6 @@ export interface Messages {
     themeToModern: string;
     sound: string;
     preset: string;
-    volume: string;
     presetSoft: string;
     presetRetro: string;
     presetArcade: string;
@@ -115,7 +114,6 @@ export const messages: Messages = {
     themeToModern: '모던 테마',
     sound: '사운드',
     preset: '프리셋',
-    volume: '볼륨',
     presetSoft: '부드러움',
     presetRetro: '레트로',
     presetArcade: '아케이드',
