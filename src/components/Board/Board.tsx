@@ -36,8 +36,9 @@ export const Board = ({
 }: Props) => {
   const height = board.length;
   const width = board[0]?.length ?? 0;
-  const boardPixelWidth = width * cellSize + Math.max(0, width - 1) * 2 + 10;
-  const boardPixelHeight = height * cellSize + Math.max(0, height - 1) * 2 + 10;
+  const gridGap = 1;
+  const boardPixelWidth = width * cellSize + Math.max(0, width - 1) * gridGap + 10;
+  const boardPixelHeight = height * cellSize + Math.max(0, height - 1) * gridGap + 10;
   const scaledWidth = Math.max(1, Math.round(boardPixelWidth * boardScale));
   const scaledHeight = Math.max(1, Math.round(boardPixelHeight * boardScale));
 
@@ -52,7 +53,7 @@ export const Board = ({
           }}
         >
           <div
-            className={`grid w-fit select-none gap-[2px] rounded-lg border border-[var(--border)] bg-[var(--grid-bg)] p-1 touch-pan-x touch-pan-y ${disabled ? 'pointer-events-none opacity-80' : ''}`}
+            className={`grid w-fit select-none gap-[1px] rounded-lg border border-[var(--border)] bg-[var(--grid-bg)] p-1 touch-manipulation ${disabled ? 'pointer-events-none opacity-80' : ''}`}
             style={{ gridTemplateColumns: `repeat(${width}, var(--cell-size))` }}
           >
             {board.flat().map((cell) => (

@@ -13,7 +13,7 @@ import { messages, type AppLanguage } from './i18n/messages';
 
 const LEADERBOARD_KEY = 'tiger-sweeper:leaderboard:v1';
 const LANGUAGE_KEY = 'tiger-sweeper:language:v1';
-const GITHUB_URL_PLACEHOLDER = '#';
+const GITHUB_URL_PLACEHOLDER = 'https://github.com/MTGVim/tiger-sweeper';
 const difficultyRank: Record<LeaderboardEntry['difficulty'], number> = {
   easy: 0,
   normal: 1,
@@ -197,7 +197,7 @@ export const App = () => {
   };
 
   const boardColumns = state.board[0]?.length ?? 0;
-  const boardPixelWidth = boardColumns * state.cellSize + Math.max(0, boardColumns - 1) * 2 + 10;
+  const boardPixelWidth = boardColumns * state.cellSize + Math.max(0, boardColumns - 1) * 1 + 10;
   const boardScale = boardHostWidth > 0 ? Math.min(1, boardHostWidth / boardPixelWidth) : 1;
   const preStart = state.status === 'idle';
   const pauseDisabled = preStart || (!state.paused && state.status !== 'playing');

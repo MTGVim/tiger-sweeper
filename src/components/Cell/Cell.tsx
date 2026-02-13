@@ -41,7 +41,7 @@ export const Cell = ({
   const isClosedLike = obscured || !cell.isOpen;
 
   const className = [
-    'grid place-items-center rounded-[4px] p-0 font-bold transition-transform duration-100',
+    'grid place-items-center rounded-none p-0 font-bold transition-transform duration-100',
     isClosedLike
       ? 'ui-button text-[color:var(--cell-text-closed)]'
       : 'cursor-default border border-[var(--cell-border)] bg-[var(--open)] text-[color:var(--cell-text-open)]',
