@@ -1,0 +1,52 @@
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border: 1px solid #8b98b2;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: var(--cell-font-size);
+  cursor: pointer;
+  transition: transform 100ms ease, background-color 100ms ease;
+  background: var(--closed);
+  padding: 0;
+}
+
+.cell:hover {
+  background: var(--closed-hover);
+}
+
+.open {
+  background: var(--open);
+  cursor: default;
+}
+
+.mine {
+  background: var(--mine);
+  color: white;
+}
+
+.exploded {
+  box-shadow: inset 0 0 0 2px #fff;
+  animation: boom 300ms ease;
+}
+
+@keyframes boom {
+  from {
+    transform: scale(0.8);
+    filter: brightness(1.4);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.n1 { color: #1e3a8a; }
+.n2 { color: #1f7a1f; }
+.n3 { color: #b91c1c; }
+.n4 { color: #312e81; }
+.n5 { color: #7c2d12; }
+.n6 { color: #0f766e; }
+.n7 { color: #111827; }
+.n8 { color: #4b5563; }

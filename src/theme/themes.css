@@ -1,0 +1,43 @@
+:root {
+  --font-ui: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  --bg: radial-gradient(circle at top, #f9fbff, #e6ebf5 55%, #d9dee8);
+  --panel: #ffffffcc;
+  --border: #b4c0d6;
+  --text: #1d2738;
+  --accent: #2762d6;
+  --btn-bg: #f7fbff;
+  --btn-bg-hover: #eaf2ff;
+  --btn-bg-active: #dce8fb;
+  --btn-text: #1d2738;
+  --btn-border: #9fb4d6;
+  --btn-hi: #ffffff;
+  --btn-lo: #8aa3cb;
+  --grid-bg: #aeb9cf44;
+  --cell-border: #8b98b2;
+  --closed: #d5deef;
+  --closed-hover: #becae0;
+  --open: #f4f7fb;
+  --mine: #e05252;
+}
+
+[data-theme='windowsXP'] {
+  --font-ui: Tahoma, 'MS Sans Serif', sans-serif;
+  --bg: linear-gradient(180deg, #008080, #006c6c);
+  --panel: #c0c0c0;
+  --border: #808080;
+  --text: #111111;
+  --accent: #003399;
+  --btn-bg: #f2f2f2;
+  --btn-bg-hover: #ffffff;
+  --btn-bg-active: #d9d9d9;
+  --btn-text: #0f0f0f;
+  --btn-border: #7a7a7a;
+  --btn-hi: #ffffff;
+  --btn-lo: #6a6a6a;
+  --grid-bg: #8f8f8f;
+  --cell-border: #6f6f6f;
+  --closed: #c0c0c0;
+  --closed-hover: #b0b0b0;
+  --open: #dcdcdc;
+  --mine: #cc0000;
+}

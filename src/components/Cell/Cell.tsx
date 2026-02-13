@@ -1,0 +1,87 @@
+import { useRef } from 'react';
+import type { Cell as CellType } from '../../core/types';
+
+interface Props {
+  cell: CellType;
+  obscured?: boolean;
+  onOpen: (x: number, y: number) => void;
+  onFlag: (x: number, y: number) => void;
+}
+
+const numberClass = (n: number): string => {
+  if (n === 1) return 'text-blue-900';
+  if (n === 2) return 'text-green-700';
+  if (n === 3) return 'text-red-700';
+  if (n === 4) return 'text-indigo-900';
+  if (n === 5) return 'text-amber-900';
+  if (n === 6) return 'text-teal-700';
+  if (n === 7) return 'text-gray-900';
+  if (n === 8) return 'text-gray-600';
+  return '';
+};
+
+export const Cell = ({ cell, obscured = false, onOpen, onFlag }: Props) => {
+  const touchTimerRef = useRef<number | null>(null);
+  const suppressClickRef = useRef(false);
+  const isClosedLike = obscured || !cell.isOpen;
+
+  const className = [
+    'grid place-items-center rounded-[4px] p-0 font-bold transition-transform duration-100',
+    isClosedLike ? 'ui-button' : 'cursor-default border border-[var(--cell-border)] bg-[var(--open)]',
+    !obscured && !cell.isOpen ? 'cursor-pointer active:scale-95' : '',
+    !obscured && cell.isMine && cell.isOpen ? 'bg-[var(--mine)] text-white' : '',
+    !obscured && cell.isExploded ? 'animate-pulse ring-2 ring-white/90 ring-inset' : '',
+    !obscured && cell.isOpen ? numberClass(cell.adjacentMines) : ''
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  let label = '';
+  if (!obscured) {
+    if (cell.isFlagged && !cell.isOpen) label = '🚩';
+    else if (cell.isOpen && cell.isMine) label = '💣';
+    else if (cell.isOpen && cell.adjacentMines > 0) label = String(cell.adjacentMines);
+  }
+
+  const clearTouchTimer = () => {
+    if (touchTimerRef.current != null) {
+      window.clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
+    }
+  };
+
+  return (
+    <button
+      className={className}
+      style={{ width: 'var(--cell-size)', height: 'var(--cell-size)', fontSize: 'var(--cell-font-size)' }}
+      onClick={() => {
+        if (obscured) return;
+        if (suppressClickRef.current) {
+          suppressClickRef.current = false;
+          return;
+        }
+        onOpen(cell.x, cell.y);
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        if (obscured) return;
+        onFlag(cell.x, cell.y);
+      }}
+      onTouchStart={() => {
+        if (obscured) return;
+        if (cell.isOpen) return;
+        clearTouchTimer();
+        touchTimerRef.current = window.setTimeout(() => {
+          suppressClickRef.current = true;
+          onFlag(cell.x, cell.y);
+        }, 350);
+      }}
+      onTouchEnd={clearTouchTimer}
+      onTouchMove={clearTouchTimer}
+      onTouchCancel={clearTouchTimer}
+      aria-label={`cell-${cell.x}-${cell.y}`}
+    >
+      {label}
+    </button>
+  );
+};
