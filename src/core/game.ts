@@ -1,4 +1,4 @@
-import { DIFFICULTIES } from './difficulties';
+import { getBoardConfig } from './difficulties';
 import type { Board, Cell, Difficulty } from './types';
 
 const directions = [
@@ -13,7 +13,7 @@ const directions = [
 ] as const;
 
 export const createEmptyBoard = (difficulty: Difficulty): Board => {
-  const { width, height } = DIFFICULTIES[difficulty];
+  const { width, height } = getBoardConfig(difficulty);
   return Array.from({ length: height }, (_, y) =>
     Array.from({ length: width }, (_, x): Cell => ({
       x,

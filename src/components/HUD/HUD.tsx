@@ -83,16 +83,9 @@ export const HUD = ({
         </button>
         <button className={buttonClass} onClick={onOpenOptions}>{labels.options}</button>
         <div className="basis-full" />
-        <button
-          className={`${buttonClass} ml-auto ${showProbabilities ? 'bg-[var(--btn-bg-active)] shadow-[inset_-1px_-1px_0_var(--btn-hi),inset_1px_1px_0_var(--btn-lo)] translate-y-[1px]' : ''}`}
-          onClick={onToggleProbabilities}
-          aria-pressed={showProbabilities}
-        >
-          {labels.probability}
-        </button>
         <div className="relative inline-flex flex-col items-end">
           <button
-            className={`${buttonClass} ${aiMode ? 'bg-[var(--btn-bg-active)] shadow-[inset_-1px_-1px_0_var(--btn-hi),inset_1px_1px_0_var(--btn-lo)] translate-y-[1px]' : ''}`}
+            className={`${buttonClass} ml-auto ${aiMode ? 'bg-[var(--btn-bg-active)] shadow-[inset_-1px_-1px_0_var(--btn-hi),inset_1px_1px_0_var(--btn-lo)] translate-y-[1px]' : ''}`}
             onClick={onToggleAI}
             disabled={autoSolveDisabled}
             aria-pressed={aiMode}
@@ -114,6 +107,13 @@ export const HUD = ({
             </div>
           ) : null}
         </div>
+        <button
+          className={`${buttonClass} ${showProbabilities ? 'bg-[var(--btn-bg-active)] shadow-[inset_-1px_-1px_0_var(--btn-hi),inset_1px_1px_0_var(--btn-lo)] translate-y-[1px]' : ''}`}
+          onClick={onToggleProbabilities}
+          aria-pressed={showProbabilities}
+        >
+          {labels.probability}
+        </button>
       </div>
 
       <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">

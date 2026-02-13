@@ -65,6 +65,8 @@ export const App = () => {
   });
   const [pressedCells, setPressedCells] = useState<Set<string>>(new Set());
   const [boardHostWidth, setBoardHostWidth] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileInputMode, setMobileInputMode] = useState<'open' | 'flag'>('open');
 
   usePwa();
 
@@ -166,6 +168,28 @@ export const App = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const updateViewportMode = () => {
+      const canMatch = typeof window.matchMedia === 'function';
+      const coarsePointer = canMatch ? window.matchMedia('(pointer: coarse)').matches : false;
+      const mobileLike = coarsePointer || window.innerWidth <= 900;
+      setIsMobile(mobileLike);
+    };
+
+    updateViewportMode();
+    window.addEventListener('resize', updateViewportMode);
+    window.addEventListener('orientationchange', updateViewportMode);
+    return () => {
+      window.removeEventListener('resize', updateViewportMode);
+      window.removeEventListener('orientationchange', updateViewportMode);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return;
+    setMobileInputMode('open');
+  }, [isMobile]);
+
   const openOptions = () => setOptionsOpen(true);
   const closeOptions = () => setOptionsOpen(false);
 
@@ -236,56 +260,58 @@ export const App = () => {
           }}
         />
 
-        <div className="mt-3">
+        <div className="sticky top-2 z-20 mt-3 rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
           <DifficultySelector
             difficulty={state.difficulty}
             label={t.difficultyLabel}
             labels={t.difficulty}
             onChange={(difficulty) => dispatch({ type: 'SET_DIFFICULTY', difficulty })}
           />
+
+          <HUD
+            status={state.status}
+            paused={state.paused}
+            lives={state.lives}
+            timer={state.timer}
+            remainingMines={state.remainingMines}
+            aiMode={state.aiMode}
+            aiSpeed={state.aiSpeed}
+            theme={state.theme}
+            cellSize={state.cellSize}
+            soundEnabled={state.soundEnabled}
+            soundVolume={state.soundVolume}
+            soundPreset={state.soundPreset}
+            pauseDisabled={pauseDisabled}
+            autoSolveDisabled={autoSolveDisabled}
+            showProbabilities={state.showProbabilities}
+            labels={t.hud}
+            onReset={() => dispatch({ type: 'RESET' })}
+            onToggleAI={() => dispatch({ type: 'TOGGLE_AI' })}
+            onAiSpeedChange={(speed) => dispatch({ type: 'SET_AI_SPEED', speed })}
+            onToggleProbabilities={() =>
+              dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: !state.showProbabilities })
+            }
+            onToggleTheme={() =>
+              dispatch({ type: 'SET_THEME', theme: state.theme === 'modern' ? 'windowsXP' : 'modern' })
+            }
+            onCellSizeChange={(size) => dispatch({ type: 'SET_CELL_SIZE', size })}
+            onTogglePause={() => dispatch({ type: 'TOGGLE_PAUSE' })}
+            onSoundEnabledChange={(enabled) => dispatch({ type: 'SET_SOUND_ENABLED', enabled })}
+            onSoundVolumeChange={(volume) => dispatch({ type: 'SET_SOUND_VOLUME', volume })}
+            onSoundPresetChange={(preset) => dispatch({ type: 'SET_SOUND_PRESET', preset })}
+            onOpenOptions={openOptions}
+          />
         </div>
 
-        <HUD
-          status={state.status}
-          paused={state.paused}
-          lives={state.lives}
-          timer={state.timer}
-          remainingMines={state.remainingMines}
-          aiMode={state.aiMode}
-          aiSpeed={state.aiSpeed}
-          theme={state.theme}
-          cellSize={state.cellSize}
-          soundEnabled={state.soundEnabled}
-          soundVolume={state.soundVolume}
-          soundPreset={state.soundPreset}
-          pauseDisabled={pauseDisabled}
-          autoSolveDisabled={autoSolveDisabled}
-          showProbabilities={state.showProbabilities}
-          labels={t.hud}
-          onReset={() => dispatch({ type: 'RESET' })}
-          onToggleAI={() => dispatch({ type: 'TOGGLE_AI' })}
-          onAiSpeedChange={(speed) => dispatch({ type: 'SET_AI_SPEED', speed })}
-          onToggleProbabilities={() =>
-            dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: !state.showProbabilities })
-          }
-          onToggleTheme={() =>
-            dispatch({ type: 'SET_THEME', theme: state.theme === 'modern' ? 'windowsXP' : 'modern' })
-          }
-          onCellSizeChange={(size) => dispatch({ type: 'SET_CELL_SIZE', size })}
-          onTogglePause={() => dispatch({ type: 'TOGGLE_PAUSE' })}
-          onSoundEnabledChange={(enabled) => dispatch({ type: 'SET_SOUND_ENABLED', enabled })}
-          onSoundVolumeChange={(volume) => dispatch({ type: 'SET_SOUND_VOLUME', volume })}
-          onSoundPresetChange={(preset) => dispatch({ type: 'SET_SOUND_PRESET', preset })}
-          onOpenOptions={openOptions}
-        />
-
-        <div ref={boardHostRef} className="w-full min-w-0">
+        <div ref={boardHostRef} className={`w-full min-w-0 ${isMobile ? 'pb-20' : ''}`}>
           <Board
             board={state.board}
             cellSize={state.cellSize}
             boardScale={boardScale}
             disabled={state.paused || optionsOpen}
             obscured={state.paused || optionsOpen}
+            interactionMode={isMobile ? mobileInputMode : 'open'}
+            enableLongPressHaptics={isMobile}
             pausedLabel={t.board.paused}
             hintCell={state.hintCell}
             pressedCells={pressedCells}
@@ -308,8 +334,13 @@ export const App = () => {
               if (!state.paused && !optionsOpen) play('click');
             }}
             onFlag={(x, y) => {
+              const target = state.board[y]?.[x];
+              if (!target || target.isOpen || state.paused || optionsOpen || state.status === 'won' || state.status === 'lost') {
+                return false;
+              }
               dispatch({ type: 'TOGGLE_FLAG', x, y });
               if (!state.paused && !optionsOpen) play('flag');
+              return true;
             }}
           />
         </div>
@@ -403,6 +434,26 @@ export const App = () => {
             />
           </div>
         </div>
+      ) : null}
+
+      {isMobile ? (
+        <button
+          className="fixed bottom-4 right-4 z-30 inline-flex items-center gap-1 rounded-xl border border-[var(--border)] bg-[var(--panel)] px-3 py-2 text-xs font-bold shadow-[0_10px_24px_rgb(0_0_0_/_24%)]"
+          onClick={() => setMobileInputMode((prev) => (prev === 'open' ? 'flag' : 'open'))}
+          aria-pressed={mobileInputMode === 'flag'}
+          aria-label={
+            language === 'ko'
+              ? mobileInputMode === 'open'
+                ? '현재 지뢰 모드, 탭하면 깃발 모드'
+                : '현재 깃발 모드, 탭하면 지뢰 모드'
+              : mobileInputMode === 'open'
+                ? 'Mine mode enabled, tap to switch to flag mode'
+                : 'Flag mode enabled, tap to switch to mine mode'
+          }
+        >
+          <span>{mobileInputMode === 'open' ? '💣' : '🚩'}</span>
+          <span>{mobileInputMode === 'open' ? (language === 'ko' ? '지뢰' : 'Mine') : language === 'ko' ? '깃발' : 'Flag'}</span>
+        </button>
       ) : null}
 
     </div>

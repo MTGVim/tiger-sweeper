@@ -7,6 +7,8 @@ interface Props {
   boardScale?: number;
   disabled?: boolean;
   obscured?: boolean;
+  interactionMode?: 'open' | 'flag';
+  enableLongPressHaptics?: boolean;
   pausedLabel?: string;
   noticeMessage?: string | null;
   hintCell?: { x: number; y: number } | null;
@@ -15,7 +17,7 @@ interface Props {
   onPressStart?: (x: number, y: number) => void;
   onPressEnd?: () => void;
   onOpen: (x: number, y: number) => void;
-  onFlag: (x: number, y: number) => void;
+  onFlag: (x: number, y: number) => boolean;
 }
 
 export const Board = ({
@@ -24,6 +26,8 @@ export const Board = ({
   boardScale = 1,
   disabled = false,
   obscured = false,
+  interactionMode = 'open',
+  enableLongPressHaptics = false,
   pausedLabel = 'Paused',
   noticeMessage = null,
   hintCell = null,
@@ -64,6 +68,8 @@ export const Board = ({
                 highlighted={hintCell?.x === cell.x && hintCell?.y === cell.y}
                 pressed={pressedCells.has(`${cell.x},${cell.y}`)}
                 mineProbability={probabilityHints.get(`${cell.x},${cell.y}`)}
+                interactionMode={interactionMode}
+                enableLongPressHaptics={enableLongPressHaptics}
                 onPressStart={onPressStart}
                 onPressEnd={onPressEnd}
                 onOpen={onOpen}
@@ -73,14 +79,14 @@ export const Board = ({
           </div>
         </div>
         {obscured ? (
-          <div className="pointer-events-none absolute inset-0 grid place-items-center">
+          <div className="pointer-events-none fixed inset-0 z-30 grid place-items-center">
             <div className="rounded-lg border border-[var(--border)] bg-black/55 px-4 py-2 text-sm font-semibold text-white">
               {pausedLabel}
             </div>
           </div>
         ) : null}
         {!obscured && noticeMessage ? (
-          <div className="pointer-events-none absolute inset-0 grid place-items-center">
+          <div className="pointer-events-none fixed inset-0 z-30 grid place-items-center">
             <div className="rounded-lg border border-[var(--border)] bg-black/55 px-4 py-2 text-sm font-semibold text-white">
               {noticeMessage}
             </div>

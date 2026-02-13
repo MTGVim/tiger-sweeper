@@ -7,10 +7,12 @@ interface Props {
   highlighted?: boolean;
   pressed?: boolean;
   mineProbability?: number;
+  interactionMode?: 'open' | 'flag';
+  enableLongPressHaptics?: boolean;
   onPressStart?: (x: number, y: number) => void;
   onPressEnd?: () => void;
   onOpen: (x: number, y: number) => void;
-  onFlag: (x: number, y: number) => void;
+  onFlag: (x: number, y: number) => boolean;
 }
 
 const numberClass = (n: number): string => {
@@ -31,6 +33,8 @@ export const Cell = ({
   highlighted = false,
   pressed = false,
   mineProbability,
+  interactionMode = 'open',
+  enableLongPressHaptics = false,
   onPressStart,
   onPressEnd,
   onOpen,
@@ -75,6 +79,10 @@ export const Cell = ({
   };
 
   const numberColor = !obscured && cell.isOpen ? numberClass(cell.adjacentMines) : '';
+  const vibrate = () => {
+    if (!enableLongPressHaptics || typeof navigator === 'undefined' || !('vibrate' in navigator)) return;
+    navigator.vibrate(20);
+  };
 
   return (
     <button
@@ -89,6 +97,12 @@ export const Cell = ({
         if (obscured) return;
         if (suppressClickRef.current) {
           suppressClickRef.current = false;
+          return;
+        }
+        if (interactionMode === 'flag') {
+          if (!cell.isOpen) {
+            onFlag(cell.x, cell.y);
+          }
           return;
         }
         onOpen(cell.x, cell.y);
@@ -111,7 +125,8 @@ export const Cell = ({
         clearTouchTimer();
         touchTimerRef.current = window.setTimeout(() => {
           suppressClickRef.current = true;
-          onFlag(cell.x, cell.y);
+          const changed = onFlag(cell.x, cell.y);
+          if (changed) vibrate();
         }, 350);
       }}
       onTouchEnd={() => {

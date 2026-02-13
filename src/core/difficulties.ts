@@ -6,3 +6,12 @@ export const DIFFICULTIES: Record<Difficulty, DifficultyConfig> = {
   hard: { width: 24, height: 16, mines: 72 },
   veryHard: { width: 30, height: 16, mines: 99 }
 };
+
+export const getBoardConfig = (difficulty: Difficulty): DifficultyConfig => {
+  const config = DIFFICULTIES[difficulty];
+  return {
+    width: Math.min(config.width, config.height),
+    height: Math.max(config.width, config.height),
+    mines: config.mines
+  };
+};
