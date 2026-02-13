@@ -65,7 +65,7 @@ export interface Messages {
 
 export const messages: Record<AppLanguage, Messages> = {
   ko: {
-    appTitle: '🐯 Tiger-Sweeper',
+    appTitle: 'Tiger-Sweeper',
     githubAria: 'GitHub 저장소',
     difficultyLabel: '난이도',
     difficulty: { easy: '쉬움', normal: '보통', hard: '어려움', veryHard: '매우 어려움' },
@@ -133,7 +133,7 @@ export const messages: Record<AppLanguage, Messages> = {
     }
   },
   en: {
-    appTitle: '🐯 Tiger-Sweeper',
+    appTitle: 'Tiger-Sweeper',
     githubAria: 'GitHub Repository',
     difficultyLabel: 'Difficulty',
     difficulty: { easy: 'Easy', normal: 'Normal', hard: 'Hard', veryHard: 'Very Hard' },

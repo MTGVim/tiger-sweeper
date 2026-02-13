@@ -210,7 +210,10 @@ export const App = () => {
     <div className="grid min-h-screen place-items-center p-2 sm:p-4">
       <div className="w-full min-w-0 max-w-[980px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2 shadow-[0_14px_40px_rgb(0_0_0_/_16%)] sm:p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h1 className="text-lg font-extrabold tracking-tight sm:text-xl">{t.appTitle}</h1>
+          <h1 className="flex items-center gap-2 text-lg font-extrabold tracking-tight sm:text-xl">
+            <img src="/favicon.png" alt="" className="h-6 w-6 rounded-sm" />
+            <span>{t.appTitle}</span>
+          </h1>
           <a
             href={GITHUB_URL_PLACEHOLDER}
             target="_blank"
