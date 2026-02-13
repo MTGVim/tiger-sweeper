@@ -26,6 +26,14 @@ export const DifficultySelector = ({ difficulty, label, labels, onChange }: Prop
         <button className={tabClass('hard')} role="tab" aria-selected={difficulty === 'hard'} onClick={() => onChange('hard')}>
           {labels.hard}
         </button>
+        <button
+          className={tabClass('veryHard')}
+          role="tab"
+          aria-selected={difficulty === 'veryHard'}
+          onClick={() => onChange('veryHard')}
+        >
+          {labels.veryHard}
+        </button>
       </div>
     </div>
   );

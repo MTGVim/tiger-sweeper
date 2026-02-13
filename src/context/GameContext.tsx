@@ -47,6 +47,8 @@ const calculateRemainingMines = (board: GameState['board'], difficulty: Difficul
   const resolvedMines = board.flat().filter((cell) => cell.isMine && (cell.isOpen || cell.isFlagged)).length;
   return Math.max(0, DIFFICULTIES[difficulty].mines - resolvedMines);
 };
+const hasWon = (board: GameState['board'], difficulty: Difficulty): boolean =>
+  checkWin(board) || calculateRemainingMines(board, difficulty) === 0;
 
 const createInitialState = (
   difficulty: Difficulty = 'easy',
@@ -144,7 +146,7 @@ const applyOpenCell = (state: GameState, x: number, y: number): GameState => {
       };
     }
     const remainingMines = calculateRemainingMines(board, state.difficulty);
-    const won = checkWin(board);
+    const won = hasWon(board, state.difficulty);
     return {
       ...state,
       board,
@@ -194,10 +196,12 @@ const applyOpenCell = (state: GameState, x: number, y: number): GameState => {
     };
   }
 
-  const won = checkWin(board);
+  const remainingMines = calculateRemainingMines(board, state.difficulty);
+  const won = hasWon(board, state.difficulty);
   return {
     ...state,
     board,
+    remainingMines,
     hintCell: null,
     hintConfidence: null,
     aiUncertain: false,
@@ -215,7 +219,16 @@ const reducer = (state: GameState, action: Action): GameState => {
       if (state.paused || state.status === 'won' || state.status === 'lost') return state;
       const board = toggleFlag(state.board, action.x, action.y);
       const remainingMines = calculateRemainingMines(board, state.difficulty);
-      return { ...state, board, remainingMines, hintCell: null, hintConfidence: null, aiUncertain: false };
+      const won = hasWon(board, state.difficulty);
+      return {
+        ...state,
+        board,
+        remainingMines,
+        hintCell: null,
+        hintConfidence: null,
+        aiUncertain: false,
+        status: won ? 'won' : state.status
+      };
     }
     case 'RESET':
       return createInitialState(action.difficulty ?? state.difficulty, {
@@ -253,6 +266,7 @@ const reducer = (state: GameState, action: Action): GameState => {
         const [x, y] = key.split(',').map(Number);
         const board = toggleFlag(state.board, x, y);
         const remainingMines = calculateRemainingMines(board, state.difficulty);
+        const won = hasWon(board, state.difficulty);
         return {
           ...state,
           board,
@@ -262,7 +276,8 @@ const reducer = (state: GameState, action: Action): GameState => {
           aiUncertain: false,
           aiAssisted: true,
           aiAssistCount: state.aiAssistCount + 1,
-          autoSolveUsed: true
+          autoSolveUsed: true,
+          status: won ? 'won' : state.status
         };
       }
 

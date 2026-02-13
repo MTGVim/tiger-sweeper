@@ -4,15 +4,15 @@ export interface Messages {
   appTitle: string;
   githubAria: string;
   difficultyLabel: string;
-  difficulty: { easy: string; normal: string; hard: string };
-    hud: {
-      newGame: string;
-      probability: string;
-      pause: string;
-      resume: string;
-      options: string;
-      autoSolveOn: string;
-      autoSolveOff: string;
+  difficulty: { easy: string; normal: string; hard: string; veryHard: string };
+  hud: {
+    newGame: string;
+    probability: string;
+    pause: string;
+    resume: string;
+    options: string;
+    autoSolveOn: string;
+    autoSolveOff: string;
     status: { idle: string; playing: string; won: string; lost: string; paused: string };
   };
   board: {
@@ -23,6 +23,10 @@ export interface Messages {
     title: string;
     clear: string;
     empty: string;
+    modeNone: string;
+    modeAssist: string;
+    modeProbability: string;
+    modeBoth: string;
     rank: string;
     lives: string;
     time: string;
@@ -64,7 +68,7 @@ export const messages: Record<AppLanguage, Messages> = {
     appTitle: '🐯 Tiger-Sweeper',
     githubAria: 'GitHub 저장소',
     difficultyLabel: '난이도',
-    difficulty: { easy: '쉬움', normal: '보통', hard: '어려움' },
+    difficulty: { easy: '쉬움', normal: '보통', hard: '어려움', veryHard: '매우 어려움' },
     hud: {
       newGame: '새 게임',
       probability: '👀 확률 표시',
@@ -89,6 +93,10 @@ export const messages: Record<AppLanguage, Messages> = {
       title: '리더보드 (로컬)',
       clear: '초기화',
       empty: '기록이 없습니다. 한 판 승리하면 기록이 생성됩니다.',
+      modeNone: '기본',
+      modeAssist: '어시스트',
+      modeProbability: '확률',
+      modeBoth: '어시스트+확률',
       rank: '순위',
       lives: '목숨',
       time: '시간',
@@ -128,7 +136,7 @@ export const messages: Record<AppLanguage, Messages> = {
     appTitle: '🐯 Tiger-Sweeper',
     githubAria: 'GitHub Repository',
     difficultyLabel: 'Difficulty',
-    difficulty: { easy: 'Easy', normal: 'Normal', hard: 'Hard' },
+    difficulty: { easy: 'Easy', normal: 'Normal', hard: 'Hard', veryHard: 'Very Hard' },
     hud: {
       newGame: 'New Game',
       probability: '👀 Probabilities',
@@ -153,6 +161,10 @@ export const messages: Record<AppLanguage, Messages> = {
       title: 'Leaderboard (Local)',
       clear: 'Clear',
       empty: 'No records yet. Win a game to create your first record.',
+      modeNone: 'Plain',
+      modeAssist: 'Assist',
+      modeProbability: 'Probability',
+      modeBoth: 'Assist+Probability',
       rank: 'Rank',
       lives: 'Lives',
       time: 'Time',

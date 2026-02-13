@@ -14,11 +14,17 @@ import { messages, type AppLanguage } from './i18n/messages';
 const LEADERBOARD_KEY = 'tiger-sweeper:leaderboard:v1';
 const LANGUAGE_KEY = 'tiger-sweeper:language:v1';
 const GITHUB_URL_PLACEHOLDER = '#';
+const difficultyRank: Record<LeaderboardEntry['difficulty'], number> = {
+  easy: 0,
+  normal: 1,
+  hard: 2,
+  veryHard: 3
+};
 
 const sortLeaderboard = (entries: LeaderboardEntry[]): LeaderboardEntry[] =>
   [...entries].sort((a, b) => {
     const penalty = (entry: LeaderboardEntry) => (entry.probabilityAssistUsed ? 2 : entry.autoSolveUsed ? 1 : 0);
-    if (a.difficulty !== b.difficulty) return a.difficulty.localeCompare(b.difficulty);
+    if (a.difficulty !== b.difficulty) return difficultyRank[a.difficulty] - difficultyRank[b.difficulty];
     if (penalty(a) !== penalty(b)) return penalty(a) - penalty(b);
     if (a.lives !== b.lives) return b.lives - a.lives;
     if (a.time !== b.time) return a.time - b.time;
@@ -218,12 +224,26 @@ export const App = () => {
           </a>
         </div>
 
-        <DifficultySelector
-          difficulty={state.difficulty}
-          label={t.difficultyLabel}
-          labels={t.difficulty}
-          onChange={(difficulty) => dispatch({ type: 'SET_DIFFICULTY', difficulty })}
+        <Leaderboard
+          entries={leaderboard}
+          difficultyLabels={t.difficulty}
+          labels={t.leaderboard}
+          onClear={() => {
+            const ok = window.confirm('리더보드를 정말 초기화할까요?');
+            if (!ok) return;
+            setLeaderboard([]);
+            localStorage.removeItem(LEADERBOARD_KEY);
+          }}
         />
+
+        <div className="mt-3">
+          <DifficultySelector
+            difficulty={state.difficulty}
+            label={t.difficultyLabel}
+            labels={t.difficulty}
+            onChange={(difficulty) => dispatch({ type: 'SET_DIFFICULTY', difficulty })}
+          />
+        </div>
 
         <HUD
           status={state.status}
@@ -294,17 +314,6 @@ export const App = () => {
           />
         </div>
 
-        <Leaderboard
-          entries={leaderboard}
-          difficultyLabels={t.difficulty}
-          labels={t.leaderboard}
-          onClear={() => {
-            const ok = window.confirm('리더보드를 정말 초기화할까요?');
-            if (!ok) return;
-            setLeaderboard([]);
-            localStorage.removeItem(LEADERBOARD_KEY);
-          }}
-        />
       </div>
 
       {optionsOpen ? (
