@@ -231,11 +231,14 @@ const reducer = (state: GameState, action: Action): GameState => {
       };
     }
     case 'RESET':
-      return createInitialState(action.difficulty ?? state.difficulty, {
-        aiMode: state.aiMode,
-        aiSpeed: state.aiSpeed,
-        showProbabilities: state.showProbabilities
-      });
+      return {
+        ...createInitialState(action.difficulty ?? state.difficulty, {
+          aiMode: state.aiMode,
+          aiSpeed: state.aiSpeed,
+          showProbabilities: state.showProbabilities
+        }),
+        theme: state.theme
+      };
     case 'SET_DIFFICULTY':
       return createInitialState(action.difficulty, {
         aiMode: state.aiMode,
