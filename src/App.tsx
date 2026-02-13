@@ -4,6 +4,7 @@ import { Board } from './components/Board/Board';
 import { DifficultySelector } from './components/DifficultySelector/DifficultySelector';
 import { HUD } from './components/HUD/HUD';
 import { Leaderboard } from './components/Leaderboard/Leaderboard';
+import { MiniMap } from './components/MiniMap/MiniMap';
 import type { LeaderboardEntry } from './components/Leaderboard/Leaderboard';
 import { useGame } from './context/GameContext';
 import { getProbabilityHints } from './core/ai';
@@ -261,46 +262,51 @@ export const App = () => {
         />
 
         <div className="sticky top-2 z-20 mt-3 rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
-          <DifficultySelector
-            difficulty={state.difficulty}
-            label={t.difficultyLabel}
-            labels={t.difficulty}
-            onChange={(difficulty) => dispatch({ type: 'SET_DIFFICULTY', difficulty })}
-          />
+          <div className="flex items-start gap-2">
+            <MiniMap board={state.board} />
+            <div className="min-w-0 flex-1">
+              <DifficultySelector
+                difficulty={state.difficulty}
+                label={t.difficultyLabel}
+                labels={t.difficulty}
+                onChange={(difficulty) => dispatch({ type: 'SET_DIFFICULTY', difficulty })}
+              />
 
-          <HUD
-            status={state.status}
-            paused={state.paused}
-            lives={state.lives}
-            timer={state.timer}
-            remainingMines={state.remainingMines}
-            aiMode={state.aiMode}
-            aiSpeed={state.aiSpeed}
-            theme={state.theme}
-            cellSize={state.cellSize}
-            soundEnabled={state.soundEnabled}
-            soundVolume={state.soundVolume}
-            soundPreset={state.soundPreset}
-            pauseDisabled={pauseDisabled}
-            autoSolveDisabled={autoSolveDisabled}
-            showProbabilities={state.showProbabilities}
-            labels={t.hud}
-            onReset={() => dispatch({ type: 'RESET' })}
-            onToggleAI={() => dispatch({ type: 'TOGGLE_AI' })}
-            onAiSpeedChange={(speed) => dispatch({ type: 'SET_AI_SPEED', speed })}
-            onToggleProbabilities={() =>
-              dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: !state.showProbabilities })
-            }
-            onToggleTheme={() =>
-              dispatch({ type: 'SET_THEME', theme: state.theme === 'modern' ? 'windowsXP' : 'modern' })
-            }
-            onCellSizeChange={(size) => dispatch({ type: 'SET_CELL_SIZE', size })}
-            onTogglePause={() => dispatch({ type: 'TOGGLE_PAUSE' })}
-            onSoundEnabledChange={(enabled) => dispatch({ type: 'SET_SOUND_ENABLED', enabled })}
-            onSoundVolumeChange={(volume) => dispatch({ type: 'SET_SOUND_VOLUME', volume })}
-            onSoundPresetChange={(preset) => dispatch({ type: 'SET_SOUND_PRESET', preset })}
-            onOpenOptions={openOptions}
-          />
+              <HUD
+                status={state.status}
+                paused={state.paused}
+                lives={state.lives}
+                timer={state.timer}
+                remainingMines={state.remainingMines}
+                aiMode={state.aiMode}
+                aiSpeed={state.aiSpeed}
+                theme={state.theme}
+                cellSize={state.cellSize}
+                soundEnabled={state.soundEnabled}
+                soundVolume={state.soundVolume}
+                soundPreset={state.soundPreset}
+                pauseDisabled={pauseDisabled}
+                autoSolveDisabled={autoSolveDisabled}
+                showProbabilities={state.showProbabilities}
+                labels={t.hud}
+                onReset={() => dispatch({ type: 'RESET' })}
+                onToggleAI={() => dispatch({ type: 'TOGGLE_AI' })}
+                onAiSpeedChange={(speed) => dispatch({ type: 'SET_AI_SPEED', speed })}
+                onToggleProbabilities={() =>
+                  dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: !state.showProbabilities })
+                }
+                onToggleTheme={() =>
+                  dispatch({ type: 'SET_THEME', theme: state.theme === 'modern' ? 'windowsXP' : 'modern' })
+                }
+                onCellSizeChange={(size) => dispatch({ type: 'SET_CELL_SIZE', size })}
+                onTogglePause={() => dispatch({ type: 'TOGGLE_PAUSE' })}
+                onSoundEnabledChange={(enabled) => dispatch({ type: 'SET_SOUND_ENABLED', enabled })}
+                onSoundVolumeChange={(volume) => dispatch({ type: 'SET_SOUND_VOLUME', volume })}
+                onSoundPresetChange={(preset) => dispatch({ type: 'SET_SOUND_PRESET', preset })}
+                onOpenOptions={openOptions}
+              />
+            </div>
+          </div>
         </div>
 
         <div ref={boardHostRef} className={`w-full min-w-0 ${isMobile ? 'pb-20' : ''}`}>
