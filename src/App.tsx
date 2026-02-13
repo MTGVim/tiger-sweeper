@@ -6,6 +6,7 @@ import { HUD } from './components/HUD/HUD';
 import { Leaderboard } from './components/Leaderboard/Leaderboard';
 import type { LeaderboardEntry } from './components/Leaderboard/Leaderboard';
 import { useGame } from './context/GameContext';
+import { getProbabilityHints } from './core/ai';
 import { usePwa } from './hooks/usePwa';
 import { useSound } from './hooks/useSound';
 import { messages, type AppLanguage } from './i18n/messages';
@@ -90,28 +91,39 @@ export const App = () => {
             }),
           300
         );
-        setLeaderboard((prev) => {
-          const sorted = sortLeaderboard([
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              difficulty: state.difficulty,
-              time: state.timer,
-              assists: state.aiAssistCount,
-              lives: state.lives,
-              autoSolveUsed: state.autoSolveUsed,
-              createdAt: Date.now()
-            }
-          ]);
-          const next = sorted.slice(0, 90);
-          localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(next));
-          return next;
-        });
+        if (!state.probabilityAssistUsed) {
+          setLeaderboard((prev) => {
+            const sorted = sortLeaderboard([
+              ...prev,
+              {
+                id: crypto.randomUUID(),
+                difficulty: state.difficulty,
+                time: state.timer,
+                assists: state.aiAssistCount,
+                lives: state.lives,
+                autoSolveUsed: state.autoSolveUsed,
+                createdAt: Date.now()
+              }
+            ]);
+            const next = sorted.slice(0, 90);
+            localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(next));
+            return next;
+          });
+        }
       }
       if (state.status === 'lost') play('lose');
       prevStatusRef.current = state.status;
     }
-  }, [play, state.aiAssistCount, state.autoSolveUsed, state.difficulty, state.lives, state.status, state.timer]);
+  }, [
+    play,
+    state.aiAssistCount,
+    state.autoSolveUsed,
+    state.difficulty,
+    state.lives,
+    state.probabilityAssistUsed,
+    state.status,
+    state.timer
+  ]);
 
   useEffect(() => {
     document.body.dataset.theme = state.theme;
@@ -186,6 +198,7 @@ export const App = () => {
   const pauseDisabled = preStart || (!state.paused && state.status !== 'playing');
   const autoSolveDisabled = preStart;
   const t = messages[language];
+  const probabilityHints = state.showProbabilities ? getProbabilityHints(state) : new Map<string, number>();
 
   return (
     <div className="grid min-h-screen place-items-center p-2 sm:p-4">
@@ -252,6 +265,7 @@ export const App = () => {
             pausedLabel={t.board.paused}
             hintCell={state.hintCell}
             pressedCells={pressedCells}
+            probabilityHints={probabilityHints}
             noticeMessage={
               state.status === 'won'
                 ? 'You Win! 😎'
@@ -317,6 +331,16 @@ export const App = () => {
                 <option value="ko">{t.options.languageKo}</option>
                 <option value="en">{t.options.languageEn}</option>
               </select>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between gap-4">
+              <label htmlFor="show-probabilities" className="text-sm font-semibold">{t.options.showProbabilities}</label>
+              <input
+                id="show-probabilities"
+                type="checkbox"
+                checked={state.showProbabilities}
+                onChange={(e) => dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: e.target.checked })}
+              />
             </div>
 
             <div className="mt-4 flex items-center justify-between gap-4">

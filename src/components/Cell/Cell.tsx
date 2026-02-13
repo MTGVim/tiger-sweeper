@@ -6,6 +6,7 @@ interface Props {
   obscured?: boolean;
   highlighted?: boolean;
   pressed?: boolean;
+  mineProbability?: number;
   onPressStart?: (x: number, y: number) => void;
   onPressEnd?: () => void;
   onOpen: (x: number, y: number) => void;
@@ -29,6 +30,7 @@ export const Cell = ({
   obscured = false,
   highlighted = false,
   pressed = false,
+  mineProbability,
   onPressStart,
   onPressEnd,
   onOpen,
@@ -62,6 +64,7 @@ export const Cell = ({
     if (cell.isFlagged && !cell.isOpen) label = '🚩';
     else if (cell.isOpen && cell.isMine) label = '💣';
     else if (cell.isOpen && cell.adjacentMines > 0) label = String(cell.adjacentMines);
+    else if (!cell.isOpen && !cell.isFlagged && typeof mineProbability === 'number') label = `${mineProbability}%`;
   }
 
   const clearTouchTimer = () => {
@@ -125,7 +128,7 @@ export const Cell = ({
       }}
       aria-label={`cell-${cell.x}-${cell.y}`}
     >
-      {label}
+      <span className={!cell.isOpen && !cell.isFlagged && typeof mineProbability === 'number' ? 'text-[10px]' : ''}>{label}</span>
     </button>
   );
 };

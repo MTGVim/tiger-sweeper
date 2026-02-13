@@ -48,6 +48,7 @@ export interface Messages {
     themeToXp: string;
     themeToModern: string;
     language: string;
+    showProbabilities: string;
     cellSize: string;
     sound: string;
     preset: string;
@@ -72,8 +73,8 @@ export const messages: Record<AppLanguage, Messages> = {
       pause: '일시정지',
       resume: '재개',
       options: '옵션',
-      autoSolveOn: '🤖 어시스트: ON',
-      autoSolveOff: '🤖 어시스트: OFF',
+      autoSolveOn: '🤖 어시스트',
+      autoSolveOff: '🤖 어시스트',
       status: {
         idle: '대기',
         playing: '진행중',
@@ -115,6 +116,7 @@ export const messages: Record<AppLanguage, Messages> = {
       themeToXp: 'XP 테마',
       themeToModern: '모던 테마',
       language: '언어',
+      showProbabilities: '확률 표시 (기록X)',
       cellSize: '셀 크기',
       sound: '사운드',
       preset: '프리셋',
@@ -137,8 +139,8 @@ export const messages: Record<AppLanguage, Messages> = {
       pause: 'Pause',
       resume: 'Resume',
       options: 'Options',
-      autoSolveOn: '🤖 Assist: ON',
-      autoSolveOff: '🤖 Assist: OFF',
+      autoSolveOn: '🤖 Assist',
+      autoSolveOff: '🤖 Assist',
       status: {
         idle: 'IDLE',
         playing: 'PLAYING',
@@ -180,6 +182,7 @@ export const messages: Record<AppLanguage, Messages> = {
       themeToXp: 'XP Theme',
       themeToModern: 'Modern Theme',
       language: 'Language',
+      showProbabilities: 'Show Probabilities (No Rank)',
       cellSize: 'Cell Size',
       sound: 'Sound',
       preset: 'Preset',

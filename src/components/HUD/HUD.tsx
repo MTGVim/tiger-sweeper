@@ -80,7 +80,12 @@ export const HUD = ({
         </button>
         <button className={buttonClass} onClick={onOpenOptions}>{labels.options}</button>
         <div className="basis-full" />
-        <button className={`${buttonClass} ml-auto`} onClick={onToggleAI} disabled={autoSolveDisabled}>
+        <button
+          className={`${buttonClass} ml-auto ${aiMode ? 'bg-[var(--btn-bg-active)] shadow-[inset_-1px_-1px_0_var(--btn-hi),inset_1px_1px_0_var(--btn-lo)] translate-y-[1px]' : ''}`}
+          onClick={onToggleAI}
+          disabled={autoSolveDisabled}
+          aria-pressed={aiMode}
+        >
           {aiMode ? labels.autoSolveOn : labels.autoSolveOff}
         </button>
       </div>

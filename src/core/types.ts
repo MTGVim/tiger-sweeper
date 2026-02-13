@@ -37,6 +37,8 @@ export interface GameState {
   remainingMines: number;
   difficulty: Difficulty;
   aiMode: boolean;
+  showProbabilities: boolean;
+  probabilityAssistUsed: boolean;
   theme: ThemeMode;
   soundEnabled: boolean;
   soundVolume: number;

@@ -123,6 +123,8 @@ const buildProbabilityMap = (state: GameState): {
   const board = state.board;
   const unknownCells = board.flat().filter((c) => !c.isOpen && !c.isFlagged);
   const frontier = new Map<string, number>();
+  const certainSafe = new Set<string>();
+  const certainMine = new Set<string>();
 
   for (const row of board) {
     for (const cell of row) {
@@ -134,11 +136,18 @@ const buildProbabilityMap = (state: GameState): {
       const remaining = cell.adjacentMines - flagged;
 
       if (unopened.length === 0 || remaining < 0) continue;
+      if (remaining === 0) {
+        for (const n of unopened) certainSafe.add(keyOf(n.x, n.y));
+      } else if (remaining === unopened.length) {
+        for (const n of unopened) certainMine.add(keyOf(n.x, n.y));
+      }
+
       const p = remaining / unopened.length;
       for (const n of unopened) {
         const k = keyOf(n.x, n.y);
         const current = frontier.get(k);
-        frontier.set(k, current === undefined ? p : Math.min(current, p));
+        // Conservative merge: any risk signal keeps mine probability from collapsing to 0.
+        frontier.set(k, current === undefined ? p : Math.max(current, p));
       }
     }
   }
@@ -146,8 +155,15 @@ const buildProbabilityMap = (state: GameState): {
   const unknown = unknownCells.map((cell) => ({
     x: cell.x,
     y: cell.y,
-    p: frontier.get(keyOf(cell.x, cell.y)) ?? 1,
-    inferred: frontier.has(keyOf(cell.x, cell.y))
+    p: certainSafe.has(keyOf(cell.x, cell.y))
+      ? 0
+      : certainMine.has(keyOf(cell.x, cell.y))
+        ? 1
+        : frontier.get(keyOf(cell.x, cell.y)) ?? 1,
+    inferred:
+      certainSafe.has(keyOf(cell.x, cell.y)) ||
+      certainMine.has(keyOf(cell.x, cell.y)) ||
+      frontier.has(keyOf(cell.x, cell.y))
   }));
 
   return { unknown };
@@ -163,4 +179,14 @@ export const getUncertainHint = (state: GameState): { x: number; y: number; mine
   const best = [...pool].sort((a, b) => a.p - b.p)[0];
   const mineProbability = Math.max(0, Math.min(100, Math.round(best.p * 100)));
   return { x: best.x, y: best.y, mineProbability };
+};
+
+export const getProbabilityHints = (state: GameState): Map<string, number> => {
+  const { unknown } = buildProbabilityMap(state);
+  const map = new Map<string, number>();
+  for (const cell of unknown) {
+    if (!cell.inferred) continue;
+    map.set(keyOf(cell.x, cell.y), Math.max(0, Math.min(100, Math.round(cell.p * 100))));
+  }
+  return map;
 };

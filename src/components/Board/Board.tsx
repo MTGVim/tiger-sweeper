@@ -11,6 +11,7 @@ interface Props {
   noticeMessage?: string | null;
   hintCell?: { x: number; y: number } | null;
   pressedCells?: Set<string>;
+  probabilityHints?: Map<string, number>;
   onPressStart?: (x: number, y: number) => void;
   onPressEnd?: () => void;
   onOpen: (x: number, y: number) => void;
@@ -27,6 +28,7 @@ export const Board = ({
   noticeMessage = null,
   hintCell = null,
   pressedCells = new Set<string>(),
+  probabilityHints = new Map<string, number>(),
   onPressStart,
   onPressEnd,
   onOpen,
@@ -60,6 +62,7 @@ export const Board = ({
                 obscured={obscured}
                 highlighted={hintCell?.x === cell.x && hintCell?.y === cell.y}
                 pressed={pressedCells.has(`${cell.x},${cell.y}`)}
+                mineProbability={probabilityHints.get(`${cell.x},${cell.y}`)}
                 onPressStart={onPressStart}
                 onPressEnd={onPressEnd}
                 onOpen={onOpen}

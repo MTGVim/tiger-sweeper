@@ -9,7 +9,7 @@ import {
   revealAllMines,
   toggleFlag
 } from '../core/game';
-import { getUncertainHint } from '../core/ai';
+import { getProbabilityHints, getUncertainHint } from '../core/ai';
 import type { Difficulty, GameState, SoundPreset, ThemeMode } from '../core/types';
 
 interface GameContextValue {
@@ -24,6 +24,7 @@ type Action =
   | { type: 'SET_DIFFICULTY'; difficulty: Difficulty }
   | { type: 'TICK' }
   | { type: 'TOGGLE_AI' }
+  | { type: 'SET_SHOW_PROBABILITIES'; enabled: boolean }
   | { type: 'AI_STEP' }
   | { type: 'HINT' }
   | { type: 'SET_THEME'; theme: ThemeMode }
@@ -56,6 +57,8 @@ const createInitialState = (difficulty: Difficulty = 'easy'): GameState => ({
   remainingMines: DIFFICULTIES[difficulty].mines,
   difficulty,
   aiMode: false,
+  showProbabilities: false,
+  probabilityAssistUsed: false,
   theme: 'modern',
   soundEnabled: true,
   soundVolume: 0.35,
@@ -212,11 +215,41 @@ const reducer = (state: GameState, action: Action): GameState => {
       return { ...state, timer: Number(((Date.now() - state.startedAt) / 1000).toFixed(1)) };
     case 'TOGGLE_AI':
       return { ...state, aiMode: !state.aiMode };
+    case 'SET_SHOW_PROBABILITIES':
+      return {
+        ...state,
+        showProbabilities: action.enabled,
+        probabilityAssistUsed: state.probabilityAssistUsed || action.enabled
+      };
     case 'AI_STEP': {
       if (state.paused || state.status === 'won' || state.status === 'lost') return state;
-      const hint = getUncertainHint(state);
-      if (!hint || hint.mineProbability !== 0) return state;
-      const opened = applyOpenCell(state, hint.x, hint.y);
+      const probabilities = getProbabilityHints(state);
+      if (probabilities.size === 0) return state;
+
+      const hundred = [...probabilities.entries()].find(([, p]) => p === 100);
+      if (hundred) {
+        const [key] = hundred;
+        const [x, y] = key.split(',').map(Number);
+        const board = toggleFlag(state.board, x, y);
+        const remainingMines = calculateRemainingMines(board, state.difficulty);
+        return {
+          ...state,
+          board,
+          remainingMines,
+          hintCell: null,
+          hintConfidence: null,
+          aiUncertain: false,
+          aiAssisted: true,
+          aiAssistCount: state.aiAssistCount + 1,
+          autoSolveUsed: true
+        };
+      }
+
+      const zero = [...probabilities.entries()].find(([, p]) => p === 0);
+      if (!zero) return state;
+      const [key] = zero;
+      const [x, y] = key.split(',').map(Number);
+      const opened = applyOpenCell(state, x, y);
       return { ...opened, aiAssisted: true, aiAssistCount: state.aiAssistCount + 1, autoSolveUsed: true };
     }
     case 'HINT': {
