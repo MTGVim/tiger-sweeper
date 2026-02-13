@@ -132,7 +132,7 @@ const buildProbabilityMap = (state: GameState): {
 
       const neighbors = getNeighbors(board, cell.x, cell.y);
       const unopened = neighbors.filter((n) => !n.isOpen && !n.isFlagged);
-      const flagged = neighbors.filter((n) => n.isFlagged).length;
+      const flagged = neighbors.filter((n) => n.isFlagged || (n.isOpen && n.isMine)).length;
       const remaining = cell.adjacentMines - flagged;
 
       if (unopened.length === 0 || remaining < 0) continue;

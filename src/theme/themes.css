@@ -20,6 +20,7 @@
   --cell-text-open: #102036;
   --cell-text-closed: #3d506f;
   --mine: #e05252;
+  --exploded-bg: #f2b8b8;
 }
 
 [data-theme='windowsXP'] {
@@ -44,4 +45,5 @@
   --cell-text-open: #111111;
   --cell-text-closed: #4b4b4b;
   --mine: #cc0000;
+  --exploded-bg: #f3b3b3;
 }

@@ -53,7 +53,7 @@ export const Cell = ({
       : '',
     !obscured && pressed && !isClosedLike ? 'brightness-95' : '',
     !obscured && cell.isMine && cell.isOpen ? 'bg-[var(--mine)] text-white' : '',
-    !obscured && cell.isExploded ? 'animate-pulse ring-2 ring-white/90 ring-inset' : '',
+    !obscured && cell.isExploded ? 'bg-[var(--exploded-bg)] animate-pulse ring-2 ring-white/90 ring-inset' : '',
     !obscured && highlighted ? 'ring-2 ring-amber-400 ring-offset-1 ring-offset-transparent' : ''
   ]
     .filter(Boolean)

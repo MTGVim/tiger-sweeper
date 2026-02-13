@@ -24,7 +24,7 @@ type Action =
   | { type: 'SET_DIFFICULTY'; difficulty: Difficulty }
   | { type: 'TICK' }
   | { type: 'TOGGLE_AI' }
-  | { type: 'SET_AI_SPEED'; speed: 1 | 2 | 3 | 4 }
+  | { type: 'SET_AI_SPEED'; speed: 1 | 2 | 4 | 8 }
   | { type: 'SET_SHOW_PROBABILITIES'; enabled: boolean }
   | { type: 'AI_STEP' }
   | { type: 'HINT' }
@@ -37,9 +37,9 @@ type Action =
 
 const clampCellSize = (size: number): number => Math.max(18, Math.min(40, Math.round(size)));
 const clampVolume = (volume: number): number => Math.max(0, Math.min(1, volume));
-const clampAiSpeed = (speed: number): 1 | 2 | 3 | 4 => {
+const clampAiSpeed = (speed: number): 1 | 2 | 4 | 8 => {
+  if (speed >= 8) return 8;
   if (speed >= 4) return 4;
-  if (speed >= 3) return 3;
   if (speed >= 2) return 2;
   return 1;
 };
@@ -52,7 +52,7 @@ const hasWon = (board: GameState['board'], difficulty: Difficulty): boolean =>
 
 const createInitialState = (
   difficulty: Difficulty = 'easy',
-  options?: { aiMode?: boolean; aiSpeed?: 1 | 2 | 3 | 4; showProbabilities?: boolean }
+  options?: { aiMode?: boolean; aiSpeed?: 1 | 2 | 4 | 8; showProbabilities?: boolean }
 ): GameState => ({
   board: createEmptyBoard(difficulty),
   status: 'idle',
@@ -355,7 +355,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     if (!state.aiMode) return;
     if (state.paused) return;
     if (state.status === 'won' || state.status === 'lost') return;
-    const id = window.setInterval(() => dispatch({ type: 'AI_STEP' }), Math.max(70, Math.round(300 / state.aiSpeed)));
+    const id = window.setInterval(() => dispatch({ type: 'AI_STEP' }), Math.max(30, Math.round(400 / state.aiSpeed)));
     return () => window.clearInterval(id);
   }, [state.aiMode, state.aiSpeed, state.paused, state.status]);
 
