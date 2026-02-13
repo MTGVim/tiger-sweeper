@@ -11,7 +11,7 @@ const deterministicMove = (board: Board): AiMove | null => {
 
       const neighbors = getNeighbors(board, cell.x, cell.y);
       const unopened = neighbors.filter((n) => !n.isOpen && !n.isFlagged);
-      const flagged = neighbors.filter((n) => n.isFlagged);
+      const flagged = neighbors.filter((n) => n.isFlagged || (n.isOpen && n.isMine));
 
       if (unopened.length === 0) continue;
 
@@ -37,7 +37,7 @@ export const getCertainAiMove = (board: Board): AiMove | null => {
 
       const neighbors = getNeighbors(board, cell.x, cell.y);
       const unopened = neighbors.filter((n) => !n.isOpen && !n.isFlagged);
-      const flagged = neighbors.filter((n) => n.isFlagged);
+      const flagged = neighbors.filter((n) => n.isFlagged || (n.isOpen && n.isMine));
 
       if (unopened.length === 0) continue;
       if (cell.adjacentMines === flagged.length) {
@@ -56,7 +56,7 @@ export const getCertainHintCell = (board: Board): { x: number; y: number } | nul
 
       const neighbors = getNeighbors(board, cell.x, cell.y);
       const unopened = neighbors.filter((n) => !n.isOpen && !n.isFlagged);
-      const flagged = neighbors.filter((n) => n.isFlagged);
+      const flagged = neighbors.filter((n) => n.isFlagged || (n.isOpen && n.isMine));
       if (unopened.length === 0) continue;
       if (cell.adjacentMines === flagged.length) {
         const safe = unopened[0];
@@ -81,7 +81,7 @@ const probabilisticMove = (state: GameState): AiMove | null => {
 
       const neighbors = getNeighbors(board, cell.x, cell.y);
       const unopened = neighbors.filter((n) => !n.isOpen && !n.isFlagged);
-      const flagged = neighbors.filter((n) => n.isFlagged).length;
+      const flagged = neighbors.filter((n) => n.isFlagged || (n.isOpen && n.isMine)).length;
       const remaining = cell.adjacentMines - flagged;
 
       if (unopened.length === 0 || remaining < 0) continue;

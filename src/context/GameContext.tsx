@@ -24,6 +24,7 @@ type Action =
   | { type: 'SET_DIFFICULTY'; difficulty: Difficulty }
   | { type: 'TICK' }
   | { type: 'TOGGLE_AI' }
+  | { type: 'SET_AI_SPEED'; speed: 1 | 2 | 3 | 4 }
   | { type: 'SET_SHOW_PROBABILITIES'; enabled: boolean }
   | { type: 'AI_STEP' }
   | { type: 'HINT' }
@@ -36,12 +37,21 @@ type Action =
 
 const clampCellSize = (size: number): number => Math.max(18, Math.min(40, Math.round(size)));
 const clampVolume = (volume: number): number => Math.max(0, Math.min(1, volume));
+const clampAiSpeed = (speed: number): 1 | 2 | 3 | 4 => {
+  if (speed >= 4) return 4;
+  if (speed >= 3) return 3;
+  if (speed >= 2) return 2;
+  return 1;
+};
 const calculateRemainingMines = (board: GameState['board'], difficulty: Difficulty): number => {
   const resolvedMines = board.flat().filter((cell) => cell.isMine && (cell.isOpen || cell.isFlagged)).length;
   return Math.max(0, DIFFICULTIES[difficulty].mines - resolvedMines);
 };
 
-const createInitialState = (difficulty: Difficulty = 'easy'): GameState => ({
+const createInitialState = (
+  difficulty: Difficulty = 'easy',
+  options?: { aiMode?: boolean; aiSpeed?: 1 | 2 | 3 | 4; showProbabilities?: boolean }
+): GameState => ({
   board: createEmptyBoard(difficulty),
   status: 'idle',
   paused: false,
@@ -56,9 +66,10 @@ const createInitialState = (difficulty: Difficulty = 'easy'): GameState => ({
   timer: 0,
   remainingMines: DIFFICULTIES[difficulty].mines,
   difficulty,
-  aiMode: false,
-  showProbabilities: false,
-  probabilityAssistUsed: false,
+  aiMode: options?.aiMode ?? false,
+  aiSpeed: options?.aiSpeed ?? 1,
+  showProbabilities: options?.showProbabilities ?? false,
+  probabilityAssistUsed: options?.showProbabilities ?? false,
   theme: 'modern',
   soundEnabled: true,
   soundVolume: 0.35,
@@ -207,14 +218,24 @@ const reducer = (state: GameState, action: Action): GameState => {
       return { ...state, board, remainingMines, hintCell: null, hintConfidence: null, aiUncertain: false };
     }
     case 'RESET':
-      return createInitialState(action.difficulty ?? state.difficulty);
+      return createInitialState(action.difficulty ?? state.difficulty, {
+        aiMode: state.aiMode,
+        aiSpeed: state.aiSpeed,
+        showProbabilities: state.showProbabilities
+      });
     case 'SET_DIFFICULTY':
-      return createInitialState(action.difficulty);
+      return createInitialState(action.difficulty, {
+        aiMode: state.aiMode,
+        aiSpeed: state.aiSpeed,
+        showProbabilities: state.showProbabilities
+      });
     case 'TICK':
       if (state.paused || state.status !== 'playing' || state.startedAt == null) return state;
       return { ...state, timer: Number(((Date.now() - state.startedAt) / 1000).toFixed(1)) };
     case 'TOGGLE_AI':
       return { ...state, aiMode: !state.aiMode };
+    case 'SET_AI_SPEED':
+      return { ...state, aiSpeed: clampAiSpeed(action.speed) };
     case 'SET_SHOW_PROBABILITIES':
       return {
         ...state,
@@ -319,9 +340,9 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     if (!state.aiMode) return;
     if (state.paused) return;
     if (state.status === 'won' || state.status === 'lost') return;
-    const id = window.setInterval(() => dispatch({ type: 'AI_STEP' }), 300);
+    const id = window.setInterval(() => dispatch({ type: 'AI_STEP' }), Math.max(70, Math.round(300 / state.aiSpeed)));
     return () => window.clearInterval(id);
-  }, [state.aiMode, state.paused, state.status]);
+  }, [state.aiMode, state.aiSpeed, state.paused, state.status]);
 
   const value = useMemo(() => ({ state, dispatch }), [state]);
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

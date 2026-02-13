@@ -9,6 +9,7 @@ export interface LeaderboardEntry {
   assists: number;
   lives: number;
   autoSolveUsed: boolean;
+  probabilityAssistUsed: boolean;
   createdAt: number;
 }
 
@@ -144,7 +145,6 @@ export const Leaderboard = ({ entries, difficultyLabels, labels, onClear }: Prop
                         <tr className="border-b border-[var(--border)] text-center text-xs uppercase tracking-wide text-gray-600">
                           <th className="py-2 pr-2">{labels.rank}</th>
                           <th className="py-2 pr-2">{labels.lives}</th>
-                          <th className="py-2 pr-2">{labels.hints}</th>
                           <th className="py-2 pr-2">{labels.time}</th>
                           <th className="py-2 pr-2">{labels.date}</th>
                         </tr>
@@ -156,14 +156,13 @@ export const Leaderboard = ({ entries, difficultyLabels, labels, onClear }: Prop
                             <tr
                               key={entry.id}
                             className={`border-b border-[var(--border)]/60 last:border-b-0 ${
-                                entry.autoSolveUsed ? 'bg-black/10' : ''
+                                entry.autoSolveUsed || entry.probabilityAssistUsed ? 'bg-black/10' : ''
                               }`}
                             >
                               <td className="py-2 pr-2 font-semibold">
-                                {entry.autoSolveUsed ? `🤖#${rank}` : `#${rank}`}
+                                {`${entry.probabilityAssistUsed ? '👀' : ''}${entry.autoSolveUsed ? '🤖' : ''}#${rank}`}
                               </td>
                               <td className="py-2 pr-2">{entry.lives}</td>
-                              <td className="py-2 pr-2">{entry.assists}</td>
                               <td className="py-2 pr-2 font-mono">{entry.time.toFixed(1)}s</td>
                               <td className="py-2 pr-2 whitespace-nowrap">{new Date(entry.createdAt).toLocaleString()}</td>
                             </tr>

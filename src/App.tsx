@@ -17,10 +17,10 @@ const GITHUB_URL_PLACEHOLDER = '#';
 
 const sortLeaderboard = (entries: LeaderboardEntry[]): LeaderboardEntry[] =>
   [...entries].sort((a, b) => {
+    const penalty = (entry: LeaderboardEntry) => (entry.probabilityAssistUsed ? 2 : entry.autoSolveUsed ? 1 : 0);
     if (a.difficulty !== b.difficulty) return a.difficulty.localeCompare(b.difficulty);
-    if (a.autoSolveUsed !== b.autoSolveUsed) return Number(a.autoSolveUsed) - Number(b.autoSolveUsed);
+    if (penalty(a) !== penalty(b)) return penalty(a) - penalty(b);
     if (a.lives !== b.lives) return b.lives - a.lives;
-    if (a.assists !== b.assists) return a.assists - b.assists;
     if (a.time !== b.time) return a.time - b.time;
     return a.createdAt - b.createdAt;
   });
@@ -37,6 +37,7 @@ const loadLeaderboard = (): LeaderboardEntry[] => {
         assists: typeof entry.assists === 'number' ? entry.assists : 0,
         lives: typeof entry.lives === 'number' ? entry.lives : 0,
         autoSolveUsed: Boolean(entry.autoSolveUsed),
+        probabilityAssistUsed: Boolean(entry.probabilityAssistUsed),
         time: typeof entry.time === 'number' ? entry.time : 0
       }))
     );
@@ -91,25 +92,24 @@ export const App = () => {
             }),
           300
         );
-        if (!state.probabilityAssistUsed) {
-          setLeaderboard((prev) => {
-            const sorted = sortLeaderboard([
-              ...prev,
-              {
-                id: crypto.randomUUID(),
-                difficulty: state.difficulty,
-                time: state.timer,
-                assists: state.aiAssistCount,
-                lives: state.lives,
-                autoSolveUsed: state.autoSolveUsed,
-                createdAt: Date.now()
-              }
-            ]);
-            const next = sorted.slice(0, 90);
-            localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(next));
-            return next;
-          });
-        }
+        setLeaderboard((prev) => {
+          const sorted = sortLeaderboard([
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              difficulty: state.difficulty,
+              time: state.timer,
+              assists: state.aiAssistCount,
+              lives: state.lives,
+              autoSolveUsed: state.autoSolveUsed,
+              probabilityAssistUsed: state.probabilityAssistUsed,
+              createdAt: Date.now()
+            }
+          ]);
+          const next = sorted.slice(0, 90);
+          localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(next));
+          return next;
+        });
       }
       if (state.status === 'lost') play('lose');
       prevStatusRef.current = state.status;
@@ -194,11 +194,11 @@ export const App = () => {
   const boardPixelWidth = boardColumns * state.cellSize + Math.max(0, boardColumns - 1) * 2 + 10;
   const boardScale = boardHostWidth > 0 ? Math.min(1, boardHostWidth / boardPixelWidth) : 1;
   const preStart = state.status === 'idle';
-  const hintDisabled = preStart || state.paused;
   const pauseDisabled = preStart || (!state.paused && state.status !== 'playing');
-  const autoSolveDisabled = preStart;
+  const autoSolveDisabled = false;
   const t = messages[language];
   const probabilityHints = state.showProbabilities ? getProbabilityHints(state) : new Map<string, number>();
+  const probabilityPrefix = state.probabilityAssistUsed ? '👀 ' : '';
 
   return (
     <div className="grid min-h-screen place-items-center p-2 sm:p-4">
@@ -232,18 +232,22 @@ export const App = () => {
           timer={state.timer}
           remainingMines={state.remainingMines}
           aiMode={state.aiMode}
+          aiSpeed={state.aiSpeed}
           theme={state.theme}
           cellSize={state.cellSize}
           soundEnabled={state.soundEnabled}
           soundVolume={state.soundVolume}
           soundPreset={state.soundPreset}
-          hintDisabled={hintDisabled}
           pauseDisabled={pauseDisabled}
           autoSolveDisabled={autoSolveDisabled}
+          showProbabilities={state.showProbabilities}
           labels={t.hud}
           onReset={() => dispatch({ type: 'RESET' })}
           onToggleAI={() => dispatch({ type: 'TOGGLE_AI' })}
-          onHint={() => dispatch({ type: 'HINT' })}
+          onAiSpeedChange={(speed) => dispatch({ type: 'SET_AI_SPEED', speed })}
+          onToggleProbabilities={() =>
+            dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: !state.showProbabilities })
+          }
           onToggleTheme={() =>
             dispatch({ type: 'SET_THEME', theme: state.theme === 'modern' ? 'windowsXP' : 'modern' })
           }
@@ -268,9 +272,11 @@ export const App = () => {
             probabilityHints={probabilityHints}
             noticeMessage={
               state.status === 'won'
-                ? 'You Win! 😎'
+                ? state.autoSolveUsed
+                  ? `You Win! ${probabilityPrefix}🤖`
+                  : `You Win! ${probabilityPrefix}😎`
                 : state.status === 'lost'
-                  ? '🤦'
+                  ? `${probabilityPrefix}🤦`
                 : state.hintConfidence != null
                   ? t.board.confidence(state.hintConfidence)
                   : null
@@ -331,16 +337,6 @@ export const App = () => {
                 <option value="ko">{t.options.languageKo}</option>
                 <option value="en">{t.options.languageEn}</option>
               </select>
-            </div>
-
-            <div className="mt-4 flex items-center justify-between gap-4">
-              <label htmlFor="show-probabilities" className="text-sm font-semibold">{t.options.showProbabilities}</label>
-              <input
-                id="show-probabilities"
-                type="checkbox"
-                checked={state.showProbabilities}
-                onChange={(e) => dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: e.target.checked })}
-              />
             </div>
 
             <div className="mt-4 flex items-center justify-between gap-4">

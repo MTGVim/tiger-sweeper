@@ -7,7 +7,7 @@ export interface Messages {
   difficulty: { easy: string; normal: string; hard: string };
     hud: {
       newGame: string;
-      hint: string;
+      probability: string;
       pause: string;
       resume: string;
       options: string;
@@ -25,7 +25,6 @@ export interface Messages {
     empty: string;
     rank: string;
     lives: string;
-    hints: string;
     time: string;
     date: string;
     first: string;
@@ -48,7 +47,6 @@ export interface Messages {
     themeToXp: string;
     themeToModern: string;
     language: string;
-    showProbabilities: string;
     cellSize: string;
     sound: string;
     preset: string;
@@ -69,7 +67,7 @@ export const messages: Record<AppLanguage, Messages> = {
     difficulty: { easy: '쉬움', normal: '보통', hard: '어려움' },
     hud: {
       newGame: '새 게임',
-      hint: '힌트',
+      probability: '👀 확률 표시',
       pause: '일시정지',
       resume: '재개',
       options: '옵션',
@@ -93,7 +91,6 @@ export const messages: Record<AppLanguage, Messages> = {
       empty: '기록이 없습니다. 한 판 승리하면 기록이 생성됩니다.',
       rank: '순위',
       lives: '목숨',
-      hints: '힌트',
       time: '시간',
       date: '날짜',
       first: '처음',
@@ -116,7 +113,6 @@ export const messages: Record<AppLanguage, Messages> = {
       themeToXp: 'XP 테마',
       themeToModern: '모던 테마',
       language: '언어',
-      showProbabilities: '확률 표시 (기록X)',
       cellSize: '셀 크기',
       sound: '사운드',
       preset: '프리셋',
@@ -135,7 +131,7 @@ export const messages: Record<AppLanguage, Messages> = {
     difficulty: { easy: 'Easy', normal: 'Normal', hard: 'Hard' },
     hud: {
       newGame: 'New Game',
-      hint: 'Hint',
+      probability: '👀 Probabilities',
       pause: 'Pause',
       resume: 'Resume',
       options: 'Options',
@@ -159,7 +155,6 @@ export const messages: Record<AppLanguage, Messages> = {
       empty: 'No records yet. Win a game to create your first record.',
       rank: 'Rank',
       lives: 'Lives',
-      hints: 'Hints',
       time: 'Time',
       date: 'Date',
       first: 'First',
@@ -182,7 +177,6 @@ export const messages: Record<AppLanguage, Messages> = {
       themeToXp: 'XP Theme',
       themeToModern: 'Modern Theme',
       language: 'Language',
-      showProbabilities: 'Show Probabilities (No Rank)',
       cellSize: 'Cell Size',
       sound: 'Sound',
       preset: 'Preset',
