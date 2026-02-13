@@ -63,6 +63,8 @@ export const HUD = ({
           {paused ? labels.resume : labels.pause}
         </button>
         {hideOptionsButton ? null : <button className={buttonClass} onClick={onOpenOptions}>{labels.options}</button>}
+      </div>
+      <div className="flex min-w-0 flex-wrap items-start justify-end gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2 sm:gap-2">
         <div className="relative inline-flex flex-col items-end">
           <button
             className={`${buttonClass} ml-auto ${aiMode ? 'bg-[var(--btn-bg-active)] shadow-[inset_-1px_-1px_0_var(--btn-hi),inset_1px_1px_0_var(--btn-lo)] translate-y-[1px]' : ''}`}

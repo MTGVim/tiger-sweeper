@@ -239,11 +239,14 @@ const reducer = (state: GameState, action: Action): GameState => {
         theme: state.theme
       };
     case 'SET_DIFFICULTY':
-      return createInitialState(action.difficulty, {
-        aiMode: state.aiMode,
-        aiSpeed: state.aiSpeed,
-        showProbabilities: state.showProbabilities
-      });
+      return {
+        ...createInitialState(action.difficulty, {
+          aiMode: state.aiMode,
+          aiSpeed: state.aiSpeed,
+          showProbabilities: state.showProbabilities
+        }),
+        theme: state.theme
+      };
     case 'TICK':
       if (state.paused || state.status !== 'playing' || state.startedAt == null) return state;
       return { ...state, timer: Number(((Date.now() - state.startedAt) / 1000).toFixed(1)) };
