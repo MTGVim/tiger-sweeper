@@ -307,6 +307,8 @@ export const App = () => {
   const pauseDisabled = preStart || (!state.paused && state.status !== 'playing');
   const autoSolveDisabled = false;
   const t = messages[language];
+  const statusLabel = state.paused ? t.hud.status.paused : t.hud.status[state.status];
+  const timerText = `${state.timer.toFixed(1)}s`;
   const probabilityHints = state.showProbabilities ? getProbabilityHints(state) : new Map<string, number>();
   const probabilityPrefix = state.probabilityAssistUsed ? '👀 ' : '';
   const currentStreak = streaks[state.difficulty];
@@ -355,7 +357,7 @@ export const App = () => {
 
         <div className="sticky top-2 z-20 mt-3 rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
           <div className="flex items-start gap-2">
-            <div className="shrink-0">
+            <div className="w-[182px] min-w-[182px] flex-none">
               <div className="mb-1 rounded-md border border-[var(--border)] bg-white/75 px-2 py-1 text-[11px] font-bold leading-none">
                 {currentStreak.kind === 'win' ? '🔥' : currentStreak.kind === 'lose' ? '💥' : '➖'} {streakLabel}
               </div>
@@ -369,44 +371,41 @@ export const App = () => {
                 onChange={(difficulty) => dispatch({ type: 'SET_DIFFICULTY', difficulty })}
               />
 
-              <HUD
-                status={state.status}
-                paused={state.paused}
-                lives={state.lives}
-                timer={state.timer}
-                remainingMines={state.remainingMines}
-                aiMode={state.aiMode}
-                aiSpeed={state.aiSpeed}
-                theme={state.theme}
-                cellSize={state.cellSize}
-                soundEnabled={state.soundEnabled}
-                soundVolume={state.soundVolume}
-                soundPreset={state.soundPreset}
-                pauseDisabled={pauseDisabled}
-                autoSolveDisabled={autoSolveDisabled}
-                showProbabilities={state.showProbabilities}
-                labels={t.hud}
-                onReset={() => dispatch({ type: 'RESET' })}
-                onToggleAI={() => dispatch({ type: 'TOGGLE_AI' })}
-                onAiSpeedChange={(speed) => dispatch({ type: 'SET_AI_SPEED', speed })}
-                onToggleProbabilities={() =>
-                  dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: !state.showProbabilities })
-                }
-                onToggleTheme={() =>
-                  dispatch({ type: 'SET_THEME', theme: state.theme === 'modern' ? 'windowsXP' : 'modern' })
-                }
-                onCellSizeChange={(size) => dispatch({ type: 'SET_CELL_SIZE', size })}
-                onTogglePause={() => dispatch({ type: 'TOGGLE_PAUSE' })}
-                onSoundEnabledChange={(enabled) => dispatch({ type: 'SET_SOUND_ENABLED', enabled })}
-                onSoundVolumeChange={(volume) => dispatch({ type: 'SET_SOUND_VOLUME', volume })}
-                onSoundPresetChange={(preset) => dispatch({ type: 'SET_SOUND_PRESET', preset })}
-                onOpenOptions={openOptions}
-              />
+              <div className="mt-2">
+                <HUD
+                  status={state.status}
+                  paused={state.paused}
+                  lives={state.lives}
+                  timer={state.timer}
+                  remainingMines={state.remainingMines}
+                  aiMode={state.aiMode}
+                  aiSpeed={state.aiSpeed}
+                  pauseDisabled={pauseDisabled}
+                  autoSolveDisabled={autoSolveDisabled}
+                  showProbabilities={state.showProbabilities}
+                  hideStatus
+                  labels={t.hud}
+                  onReset={() => dispatch({ type: 'RESET' })}
+                  onToggleAI={() => dispatch({ type: 'TOGGLE_AI' })}
+                  onAiSpeedChange={(speed) => dispatch({ type: 'SET_AI_SPEED', speed })}
+                  onToggleProbabilities={() =>
+                    dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: !state.showProbabilities })
+                  }
+                  onTogglePause={() => dispatch({ type: 'TOGGLE_PAUSE' })}
+                  onOpenOptions={openOptions}
+                />
+              </div>
             </div>
+          </div>
+          <div className="mt-2 flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">
+            <span>⏱ {timerText}</span>
+            <span>❤️ {state.lives}</span>
+            <span>🚩 {state.remainingMines}</span>
+            <span>{statusLabel}</span>
           </div>
         </div>
 
-        <div ref={boardHostRef} className={`w-full min-w-0 ${isMobile ? 'pb-20' : ''}`}>
+        <div ref={boardHostRef} className={`mt-3 w-full min-w-0 ${isMobile ? 'pb-20' : ''}`}>
           <Board
             board={state.board}
             cellSize={state.cellSize}

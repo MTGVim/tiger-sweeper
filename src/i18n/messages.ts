@@ -68,7 +68,7 @@ export const messages: Record<AppLanguage, Messages> = {
     appTitle: '🐯 Tiger-Sweeper',
     githubAria: 'GitHub 저장소',
     difficultyLabel: '난이도',
-    difficulty: { easy: '쉬움', normal: '보통', hard: '어려움', veryHard: '매우 어려움' },
+    difficulty: { easy: '쉬움', normal: '보통', hard: '어려움', veryHard: '지옥' },
     hud: {
       newGame: '새 게임',
       probability: '👀 확률 표시',
@@ -136,7 +136,7 @@ export const messages: Record<AppLanguage, Messages> = {
     appTitle: '🐯 Tiger-Sweeper',
     githubAria: 'GitHub Repository',
     difficultyLabel: 'Difficulty',
-    difficulty: { easy: 'Easy', normal: 'Normal', hard: 'Hard', veryHard: 'Very Hard' },
+    difficulty: { easy: 'Easy', normal: 'Normal', hard: 'Hard', veryHard: 'Hell' },
     hud: {
       newGame: 'New Game',
       probability: '👀 Probabilities',

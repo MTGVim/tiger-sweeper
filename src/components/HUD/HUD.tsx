@@ -1,4 +1,4 @@
-import type { GameStatus, SoundPreset, ThemeMode } from '../../core/types';
+import type { GameStatus } from '../../core/types';
 
 interface Props {
   status: GameStatus;
@@ -8,14 +8,11 @@ interface Props {
   remainingMines: number;
   aiMode: boolean;
   aiSpeed: 1 | 2 | 4 | 8;
-  theme: ThemeMode;
-  cellSize: number;
-  soundEnabled: boolean;
-  soundVolume: number;
-  soundPreset: SoundPreset;
   pauseDisabled: boolean;
   autoSolveDisabled: boolean;
   showProbabilities: boolean;
+  hideStatus?: boolean;
+  hideOptionsButton?: boolean;
   labels: {
     newGame: string;
     probability: string;
@@ -30,12 +27,7 @@ interface Props {
   onToggleAI: () => void;
   onAiSpeedChange: (speed: 1 | 2 | 4 | 8) => void;
   onToggleProbabilities: () => void;
-  onToggleTheme: () => void;
-  onCellSizeChange: (size: number) => void;
   onTogglePause: () => void;
-  onSoundEnabledChange: (enabled: boolean) => void;
-  onSoundVolumeChange: (volume: number) => void;
-  onSoundPresetChange: (preset: SoundPreset) => void;
   onOpenOptions: () => void;
 }
 
@@ -50,30 +42,19 @@ export const HUD = ({
   remainingMines,
   aiMode,
   aiSpeed,
-  theme,
-  cellSize,
-  soundEnabled,
-  soundVolume,
-  soundPreset,
   pauseDisabled,
   autoSolveDisabled,
   showProbabilities,
+  hideStatus = false,
+  hideOptionsButton = false,
   labels,
   onReset,
   onToggleAI,
   onAiSpeedChange,
   onToggleProbabilities,
-  onToggleTheme,
-  onCellSizeChange,
   onTogglePause,
-  onSoundEnabledChange,
-  onSoundVolumeChange,
-  onSoundPresetChange,
   onOpenOptions
 }: Props) => {
-  const statusLabel = paused ? labels.status.paused : labels.status[status];
-  const timerText = `${timer.toFixed(1)}s`;
-
   return (
     <div className="mb-3 grid min-w-0 gap-2 sm:gap-3">
       <div className="flex min-w-0 flex-wrap justify-end gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2 sm:gap-2">
@@ -81,7 +62,7 @@ export const HUD = ({
         <button className={buttonClass} onClick={onTogglePause} disabled={pauseDisabled}>
           {paused ? labels.resume : labels.pause}
         </button>
-        <button className={buttonClass} onClick={onOpenOptions}>{labels.options}</button>
+        {hideOptionsButton ? null : <button className={buttonClass} onClick={onOpenOptions}>{labels.options}</button>}
         <div className="basis-full" />
         <div className="relative inline-flex flex-col items-end">
           <button
@@ -116,12 +97,14 @@ export const HUD = ({
         </button>
       </div>
 
-      <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">
-        <span>⏱ {timerText}</span>
-        <span>❤️ {lives}</span>
-        <span>🚩 {remainingMines}</span>
-        <span>{statusLabel}</span>
-      </div>
+      {hideStatus ? null : (
+        <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">
+          <span>⏱ {`${timer.toFixed(1)}s`}</span>
+          <span>❤️ {lives}</span>
+          <span>🚩 {remainingMines}</span>
+          <span>{paused ? labels.status.paused : labels.status[status]}</span>
+        </div>
+      )}
     </div>
   );
 };

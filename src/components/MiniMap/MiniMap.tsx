@@ -9,9 +9,11 @@ export const MiniMap = ({ board }: Props) => {
   const cols = board[0]?.length ?? 0;
   if (rows === 0 || cols === 0) return null;
 
-  const compact = rows > 24 || cols > 18;
-  const gap = compact ? 0 : 1;
-  const cellSize = Math.max(2, Math.floor(Math.min(92 / cols, 124 / rows)));
+  const dense = rows > 24 || cols > 18;
+  const gap = dense ? 0 : 1;
+  const maxWidth = 128;
+  const maxHeight = 170;
+  const cellSize = Math.max(2, Math.floor(Math.min(maxWidth / cols, maxHeight / rows)));
 
   const cellBg = (cell: BoardType[number][number]): string => {
     if (cell.isOpen && cell.isMine) return 'var(--mine)';
@@ -21,9 +23,9 @@ export const MiniMap = ({ board }: Props) => {
   };
 
   return (
-    <div className="shrink-0 rounded-lg border border-[var(--border)] bg-white/75 p-1.5">
+    <div className="shrink-0 rounded-lg border border-[var(--border)] bg-white/75 px-2 py-1.5">
       <div
-        className="grid"
+        className="mx-auto grid"
         style={{
           gap: `${gap}px`,
           gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`
