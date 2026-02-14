@@ -101,7 +101,7 @@ const createInitialState = (
   theme: 'modern',
   soundEnabled: true,
   soundPreset: 'soft',
-  cellSize: 26,
+  cellSize: 52,
   startedAt: null,
   explodedCell: null
 });

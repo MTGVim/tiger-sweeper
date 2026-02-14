@@ -359,7 +359,7 @@ export const App = () => {
           </a>
         </div>
 
-        <div className="mt-4 mx-auto w-full max-w-[446px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
+        <div className="mt-4 mx-auto w-full max-w-[486px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
           <DifficultySelector
             difficulty={state.difficulty}
             label={t.difficultyLabel}
@@ -393,7 +393,7 @@ export const App = () => {
           </div>
         </div>
 
-        <div className="sticky top-2 z-20 mt-3 mx-auto w-full max-w-[446px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
+        <div className="sticky top-2 z-20 mt-3 mx-auto w-full max-w-[486px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
           <div className="mt-2 flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">
             <span>⏱ {timerText}</span>
             <span>❤️ {state.lives}</span>
@@ -447,7 +447,7 @@ export const App = () => {
           />
         </div>
 
-        <div className="mx-auto mt-4 w-full max-w-[446px]">
+        <div className="mx-auto mt-4 w-full max-w-[486px]">
           <Leaderboard
             entries={leaderboard}
             difficultyLabels={t.difficulty}

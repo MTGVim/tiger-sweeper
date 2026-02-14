@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --cell-size: 26px;
+    --cell-size: 52px;
     --cell-font-size: 14px;
   }
 

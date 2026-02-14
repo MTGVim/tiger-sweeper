@@ -2,8 +2,8 @@ import type { Difficulty, DifficultyConfig } from './types';
 
 export const DIFFICULTIES: Record<Difficulty, DifficultyConfig> = {
   easy: { width: 9, height: 9, mines: 10 },
-  normal: { width: 16, height: 16, mines: 40 },
-  hard: { width: 24, height: 16, mines: 72 }
+  normal: { width: 8, height: 32, mines: 40 },
+  hard: { width: 10, height: 38, mines: 72 }
 };
 
 export const getBoardConfig = (difficulty: Difficulty): DifficultyConfig => {

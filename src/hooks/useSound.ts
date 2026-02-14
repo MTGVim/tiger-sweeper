@@ -107,15 +107,16 @@ const waveByEvent: Partial<Record<SoundEvent, OscillatorType>> = {
   win: 'square'
 };
 
-const EXTERNAL_SOUND_URLS: Partial<Record<SoundEvent, string>> = {
-  explode: '/sounds/vine-boom.mp3',
-  win: '/sounds/yahoo-yodel.mp3',
-  lose: '/sounds/ocean-meme.mp3'
+const EXTERNAL_SOUND_FILES: Partial<Record<SoundEvent, string>> = {
+  explode: 'sounds/vine-boom.mp3',
+  win: 'sounds/yahoo-yodel.mp3',
+  lose: 'sounds/ocean-meme.mp3'
 };
 
 const DEFAULT_SOUND_VOLUME = 0.65;
 
 export const useSound = (preset: SoundPreset, enabled: boolean) => {
+  const baseUrl = import.meta.env.BASE_URL ?? '/';
   const externalAudioRef = useRef<Partial<Record<SoundEvent, HTMLAudioElement>>>({});
   const synthCtxRef = useRef<Partial<Record<SoundEvent, AudioContext>>>({});
   const synthTimerRef = useRef<Partial<Record<SoundEvent, number>>>({});
@@ -188,11 +189,12 @@ export const useSound = (preset: SoundPreset, enabled: boolean) => {
 
   return useCallback((event: SoundEvent) => {
     if (!enabled) return;
-    const externalUrl = EXTERNAL_SOUND_URLS[event];
-    if (!externalUrl) {
+    const externalFile = EXTERNAL_SOUND_FILES[event];
+    if (!externalFile) {
       playSynth(event);
       return;
     }
+    const externalUrl = new URL(externalFile, window.location.origin + baseUrl).toString();
 
     const cached = externalAudioRef.current[event];
     const audio = cached ?? new Audio(externalUrl);
