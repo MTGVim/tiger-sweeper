@@ -6,15 +6,14 @@ export interface Messages {
   hud: {
     newGame: string;
     probability: string;
-    pause: string;
-    resume: string;
+    undo: string;
     options: string;
     autoSolveOn: string;
     autoSolveOff: string;
-    status: { idle: string; playing: string; won: string; lost: string; paused: string };
+    status: { idle: string; playing: string; won: string; lost: string };
   };
   board: {
-    paused: string;
+    obscured: string;
     confidence: (value: number) => string;
   };
   leaderboard: {
@@ -64,8 +63,7 @@ export const messages: Messages = {
   hud: {
     newGame: '새 게임',
     probability: '👀 확률 표시',
-    pause: '일시정지',
-    resume: '재개',
+    undo: '되돌리기',
     options: '옵션',
     autoSolveOn: '🤖 어시스트',
     autoSolveOff: '🤖 어시스트',
@@ -73,12 +71,11 @@ export const messages: Messages = {
       idle: '대기',
       playing: '진행중',
       won: '승리',
-      lost: '패배',
-      paused: '일시정지'
+      lost: '패배'
     }
   },
   board: {
-    paused: '일시정지',
+    obscured: '옵션 열림',
     confidence: (value) => `지뢰 확률 ${value}%`
   },
   leaderboard: {

@@ -24,8 +24,7 @@ export type Board = Cell[][];
 export interface GameState {
   board: Board;
   status: GameStatus;
-  paused: boolean;
-  pausedAt: number | null;
+  undoStack: UndoSnapshot[];
   hintCell: { x: number; y: number } | null;
   hintConfidence: number | null;
   aiUncertain: boolean;
@@ -44,6 +43,22 @@ export interface GameState {
   soundEnabled: boolean;
   soundPreset: SoundPreset;
   cellSize: number;
+  startedAt: number | null;
+  explodedCell: { x: number; y: number } | null;
+}
+
+export interface UndoSnapshot {
+  board: Board;
+  status: GameStatus;
+  hintCell: { x: number; y: number } | null;
+  hintConfidence: number | null;
+  aiUncertain: boolean;
+  aiAssisted: boolean;
+  aiAssistCount: number;
+  autoSolveUsed: boolean;
+  lives: number;
+  timer: number;
+  remainingMines: number;
   startedAt: number | null;
   explodedCell: { x: number; y: number } | null;
 }

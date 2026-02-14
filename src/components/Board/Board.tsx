@@ -11,7 +11,7 @@ interface Props {
   obscured?: boolean;
   interactionMode?: 'open' | 'flag';
   enableLongPressHaptics?: boolean;
-  pausedLabel?: string;
+  obscuredLabel?: string;
   noticeMessage?: string | null;
   hintCell?: { x: number; y: number } | null;
   pressedCells?: Set<string>;
@@ -31,7 +31,7 @@ export const Board = ({
   obscured = false,
   interactionMode = 'open',
   enableLongPressHaptics = false,
-  pausedLabel = 'Paused',
+  obscuredLabel = 'Blocked',
   noticeMessage = null,
   hintCell = null,
   pressedCells = new Set<string>(),
@@ -93,7 +93,7 @@ export const Board = ({
         {obscured ? (
           <div className="pointer-events-none fixed inset-0 z-30 grid place-items-center">
             <div className="rounded-lg border border-[var(--border)] bg-black/55 px-4 py-2 text-sm font-semibold text-white">
-              {pausedLabel}
+              {obscuredLabel}
             </div>
           </div>
         ) : null}

@@ -5,8 +5,7 @@ import type { Board, GameState } from '../types';
 const createState = (board: Board): GameState => ({
   board,
   status: 'playing',
-  paused: false,
-  pausedAt: null,
+  undoStack: [],
   hintCell: null,
   hintConfidence: null,
   aiUncertain: false,

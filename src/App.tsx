@@ -212,11 +212,11 @@ export const App = () => {
   useEffect(() => {
     const flagCount = state.board.flat().filter((cell) => cell.isFlagged).length;
     const flagPlaced = flagCount > prevFlagCountRef.current;
-    if (flagPlaced && !state.paused && !optionsOpen) {
+    if (flagPlaced && !optionsOpen) {
       play('flag');
     }
     prevFlagCountRef.current = flagCount;
-  }, [optionsOpen, play, state.board, state.paused]);
+  }, [optionsOpen, play, state.board]);
 
   useEffect(() => {
     document.body.dataset.theme = state.theme;
@@ -274,6 +274,30 @@ export const App = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const isUndoKey = event.key.toLowerCase() === 'z';
+      if (!isUndoKey) return;
+      if (!(event.metaKey || event.ctrlKey) || event.shiftKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      if (state.undoStack.length === 0) return;
+      event.preventDefault();
+      dispatch({ type: 'UNDO' });
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [dispatch, state.undoStack.length]);
+
   const handleNewGame = () => {
     dispatch({ type: 'RESET' });
     if (state.status === 'won') return;
@@ -289,7 +313,7 @@ export const App = () => {
   const closeOptions = () => setOptionsOpen(false);
 
   const startNumberPressWave = (x: number, y: number) => {
-    if (state.paused || optionsOpen) return;
+    if (optionsOpen) return;
     const target = state.board[y]?.[x];
     if (!target || !target.isOpen || target.adjacentMines <= 0) return;
 
@@ -318,11 +342,10 @@ export const App = () => {
   const boardColumns = state.board[0]?.length ?? 0;
   const boardPixelWidth = boardColumns * state.cellSize + Math.max(0, boardColumns - 1) * 1 + 10;
   const boardScale = boardHostWidth > 0 ? Math.min(1, boardHostWidth / boardPixelWidth) : 1;
-  const preStart = state.status === 'idle';
-  const pauseDisabled = preStart || (!state.paused && state.status !== 'playing');
+  const canUndo = state.undoStack.length > 0;
   const autoSolveDisabled = false;
   const t = messages;
-  const statusLabel = state.paused ? t.hud.status.paused : t.hud.status[state.status];
+  const statusLabel = t.hud.status[state.status];
   const timerText = `${state.timer.toFixed(1)}s`;
   const probabilityHints = state.showProbabilities ? getProbabilityHints(state) : new Map<string, number>();
   const probabilityPrefix = state.probabilityAssistUsed ? '👀 ' : '';
@@ -364,13 +387,12 @@ export const App = () => {
           <div className="mt-2">
             <HUD
               status={state.status}
-              paused={state.paused}
+              canUndo={canUndo}
               lives={state.lives}
               timer={state.timer}
               remainingMines={state.remainingMines}
               aiMode={state.aiMode}
               aiSpeed={state.aiSpeed}
-              pauseDisabled={pauseDisabled}
               autoSolveDisabled={autoSolveDisabled}
               showProbabilities={state.showProbabilities}
               hideStatus
@@ -382,7 +404,7 @@ export const App = () => {
               onToggleProbabilities={() =>
                 dispatch({ type: 'SET_SHOW_PROBABILITIES', enabled: !state.showProbabilities })
               }
-              onTogglePause={() => dispatch({ type: 'TOGGLE_PAUSE' })}
+              onUndo={() => dispatch({ type: 'UNDO' })}
               onOpenOptions={openOptions}
             />
           </div>
@@ -401,16 +423,16 @@ export const App = () => {
                 {currentStreak.kind === 'win' ? '🔥' : currentStreak.kind === 'lose' ? '💥' : '➖'} {streakLabel}
               </div>
             </div>
-            <div className="flex h-16 min-w-[180px] flex-1 flex-wrap content-center items-center self-stretch justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-1.5">
+            <div className="flex h-[68px] min-w-[180px] flex-1 content-center items-center self-stretch justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 px-1.5 py-2 max-[420px]:py-1">
               <button className="ui-button inline-flex h-[34px] min-w-[56px] flex-none items-center justify-center rounded-md px-2 text-[10px] leading-none sm:min-w-[64px]" onClick={handleNewGame}>
                 {t.hud.newGame}
               </button>
               <button
                 className="ui-button inline-flex h-[34px] min-w-[56px] flex-none items-center justify-center rounded-md px-2 text-[10px] leading-none sm:min-w-[64px]"
-                onClick={() => dispatch({ type: 'TOGGLE_PAUSE' })}
-                disabled={pauseDisabled}
+                onClick={() => dispatch({ type: 'UNDO' })}
+                disabled={!canUndo}
               >
-                {state.paused ? t.hud.resume : t.hud.pause}
+                {t.hud.undo}
               </button>
               <button className="ui-button inline-flex h-[34px] min-w-[56px] flex-none items-center justify-center rounded-md px-2 text-[10px] leading-none sm:min-w-[64px]" onClick={openOptions}>
                 {t.hud.options}
@@ -424,11 +446,11 @@ export const App = () => {
             board={state.board}
             cellSize={state.cellSize}
             boardScale={boardScale}
-            disabled={state.paused || optionsOpen}
-            obscured={state.paused || optionsOpen}
+            disabled={optionsOpen}
+            obscured={optionsOpen}
             interactionMode="open"
             enableLongPressHaptics={isMobile && !state.aiMode}
-            pausedLabel={t.board.paused}
+            obscuredLabel={t.board.obscured}
             hintCell={state.hintCell}
             pressedCells={pressedCells}
             probabilityHints={probabilityHints}
@@ -448,11 +470,11 @@ export const App = () => {
             onPressEnd={endNumberPressWave}
             onOpen={(x, y) => {
               dispatch({ type: 'OPEN_CELL', x, y });
-              if (!state.paused && !optionsOpen) play('click');
+              if (!optionsOpen) play('click');
             }}
             onFlag={(x, y) => {
               const target = state.board[y]?.[x];
-              if (!target || target.isOpen || state.paused || optionsOpen || state.status === 'won' || state.status === 'lost') {
+              if (!target || target.isOpen || optionsOpen || state.status === 'won' || state.status === 'lost') {
                 return false;
               }
               dispatch({ type: 'TOGGLE_FLAG', x, y });

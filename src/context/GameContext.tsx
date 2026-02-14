@@ -10,7 +10,7 @@ import {
   toggleFlag
 } from '../core/game';
 import { getProbabilityHints, getUncertainHint } from '../core/ai';
-import type { Difficulty, GameState, SoundPreset, ThemeMode } from '../core/types';
+import type { Difficulty, GameState, SoundPreset, ThemeMode, UndoSnapshot } from '../core/types';
 
 const UI_PREFS_KEY = 'tiger-sweeper:ui-prefs:v1';
 
@@ -31,9 +31,11 @@ type Action =
   | { type: 'AI_STEP' }
   | { type: 'HINT' }
   | { type: 'SET_THEME'; theme: ThemeMode }
-  | { type: 'TOGGLE_PAUSE' }
+  | { type: 'UNDO' }
   | { type: 'SET_SOUND_ENABLED'; enabled: boolean }
   | { type: 'SET_SOUND_PRESET'; preset: SoundPreset };
+
+const MAX_UNDO_STACK = 100;
 
 const clampAiSpeed = (speed: number): 1 | 2 | 4 | 8 | 16 => {
   if (speed >= 16) return 16;
@@ -82,8 +84,7 @@ const createInitialState = (
 ): GameState => ({
   board: createEmptyBoard(difficulty),
   status: 'idle',
-  paused: false,
-  pausedAt: null,
+  undoStack: [],
   hintCell: null,
   hintConfidence: null,
   aiUncertain: false,
@@ -106,6 +107,30 @@ const createInitialState = (
   explodedCell: null
 });
 
+const cloneBoard = (board: GameState['board']): GameState['board'] => board.map((row) => row.map((cell) => ({ ...cell })));
+
+const createUndoSnapshot = (state: GameState): UndoSnapshot => ({
+  board: cloneBoard(state.board),
+  status: state.status,
+  hintCell: state.hintCell,
+  hintConfidence: state.hintConfidence,
+  aiUncertain: state.aiUncertain,
+  aiAssisted: state.aiAssisted,
+  aiAssistCount: state.aiAssistCount,
+  autoSolveUsed: state.autoSolveUsed,
+  lives: state.lives,
+  timer: state.timer,
+  remainingMines: state.remainingMines,
+  startedAt: state.startedAt,
+  explodedCell: state.explodedCell
+});
+
+const pushUndoSnapshot = (state: GameState): GameState['undoStack'] => {
+  const next = [...state.undoStack, createUndoSnapshot(state)];
+  if (next.length <= MAX_UNDO_STACK) return next;
+  return next.slice(next.length - MAX_UNDO_STACK);
+};
+
 const findNewlyOpenedMine = (prevBoard: GameState['board'], nextBoard: GameState['board']) => {
   for (let y = 0; y < nextBoard.length; y += 1) {
     for (let x = 0; x < (nextBoard[0]?.length ?? 0); x += 1) {
@@ -120,7 +145,7 @@ const findNewlyOpenedMine = (prevBoard: GameState['board'], nextBoard: GameState
 
 const applyOpenCell = (state: GameState, x: number, y: number): GameState => {
   const target = state.board[y]?.[x];
-  if (!target || target.isFlagged || state.paused || state.status === 'won' || state.status === 'lost') {
+  if (!target || target.isFlagged || state.status === 'won' || state.status === 'lost') {
     return state;
   }
 
@@ -238,15 +263,21 @@ const applyOpenCell = (state: GameState, x: number, y: number): GameState => {
 
 const reducer = (state: GameState, action: Action): GameState => {
   switch (action.type) {
-    case 'OPEN_CELL':
-      return applyOpenCell(state, action.x, action.y);
+    case 'OPEN_CELL': {
+      const opened = applyOpenCell(state, action.x, action.y);
+      if (opened === state) return state;
+      return { ...opened, undoStack: pushUndoSnapshot(state) };
+    }
     case 'TOGGLE_FLAG': {
-      if (state.paused || state.status === 'won' || state.status === 'lost') return state;
+      if (state.status === 'won' || state.status === 'lost') return state;
+      const target = state.board[action.y]?.[action.x];
+      if (!target || target.isOpen) return state;
       const board = toggleFlag(state.board, action.x, action.y);
       const remainingMines = calculateRemainingMines(board, state.difficulty);
       const won = hasWon(board, state.difficulty);
       return {
         ...state,
+        undoStack: pushUndoSnapshot(state),
         board,
         remainingMines,
         hintCell: null,
@@ -274,7 +305,7 @@ const reducer = (state: GameState, action: Action): GameState => {
         theme: state.theme
       };
     case 'TICK':
-      if (state.paused || state.status !== 'playing' || state.startedAt == null) return state;
+      if (state.status !== 'playing' || state.startedAt == null) return state;
       return { ...state, timer: Number(((Date.now() - state.startedAt) / 1000).toFixed(1)) };
     case 'TOGGLE_AI':
       return { ...state, aiMode: !state.aiMode };
@@ -287,7 +318,7 @@ const reducer = (state: GameState, action: Action): GameState => {
         probabilityAssistUsed: state.probabilityAssistUsed || action.enabled
       };
     case 'AI_STEP': {
-      if (state.paused || state.status === 'won' || state.status === 'lost') return state;
+      if (state.status === 'won' || state.status === 'lost') return state;
       const probabilities = getProbabilityHints(state);
       if (probabilities.size === 0) return state;
 
@@ -300,6 +331,7 @@ const reducer = (state: GameState, action: Action): GameState => {
         const won = hasWon(board, state.difficulty);
         return {
           ...state,
+          undoStack: pushUndoSnapshot(state),
           board,
           remainingMines,
           hintCell: null,
@@ -317,10 +349,17 @@ const reducer = (state: GameState, action: Action): GameState => {
       const [key] = zero;
       const [x, y] = key.split(',').map(Number);
       const opened = applyOpenCell(state, x, y);
-      return { ...opened, aiAssisted: true, aiAssistCount: state.aiAssistCount + 1, autoSolveUsed: true };
+      if (opened === state) return state;
+      return {
+        ...opened,
+        undoStack: pushUndoSnapshot(state),
+        aiAssisted: true,
+        aiAssistCount: state.aiAssistCount + 1,
+        autoSolveUsed: true
+      };
     }
     case 'HINT': {
-      if (state.paused || state.status === 'won' || state.status === 'lost') return state;
+      if (state.status === 'won' || state.status === 'lost') return state;
       const uncertain = getUncertainHint(state);
       if (!uncertain) return { ...state, hintCell: null, hintConfidence: null, aiUncertain: true };
       const nextHintCell = { x: uncertain.x, y: uncertain.y };
@@ -347,21 +386,15 @@ const reducer = (state: GameState, action: Action): GameState => {
       return { ...state, soundEnabled: action.enabled };
     case 'SET_SOUND_PRESET':
       return { ...state, soundPreset: action.preset };
-    case 'TOGGLE_PAUSE': {
-      if (state.status !== 'playing' && !state.paused) return state;
-      if (state.paused) {
-        if (state.startedAt == null || state.pausedAt == null) {
-          return { ...state, paused: false, pausedAt: null };
-        }
-        const pausedDuration = Date.now() - state.pausedAt;
-        return {
-          ...state,
-          paused: false,
-          pausedAt: null,
-          startedAt: state.startedAt + pausedDuration
-        };
-      }
-      return { ...state, paused: true, pausedAt: Date.now() };
+    case 'UNDO': {
+      const snapshot = state.undoStack[state.undoStack.length - 1];
+      if (!snapshot) return state;
+      return {
+        ...state,
+        ...snapshot,
+        aiMode: false,
+        undoStack: state.undoStack.slice(0, -1)
+      };
     }
     default:
       return state;
@@ -387,11 +420,10 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (!state.aiMode) return;
-    if (state.paused) return;
     if (state.status === 'won' || state.status === 'lost') return;
     const id = window.setInterval(() => dispatch({ type: 'AI_STEP' }), Math.max(30, Math.round(400 / state.aiSpeed)));
     return () => window.clearInterval(id);
-  }, [state.aiMode, state.aiSpeed, state.paused, state.status]);
+  }, [state.aiMode, state.aiSpeed, state.status]);
 
   useEffect(() => {
     localStorage.setItem(

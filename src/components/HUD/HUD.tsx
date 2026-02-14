@@ -2,13 +2,12 @@ import type { GameStatus } from '../../core/types';
 
 interface Props {
   status: GameStatus;
-  paused: boolean;
+  canUndo: boolean;
   lives: number;
   timer: number;
   remainingMines: number;
   aiMode: boolean;
   aiSpeed: 1 | 2 | 4 | 8 | 16;
-  pauseDisabled: boolean;
   autoSolveDisabled: boolean;
   showProbabilities: boolean;
   hideStatus?: boolean;
@@ -17,18 +16,17 @@ interface Props {
   labels: {
     newGame: string;
     probability: string;
-    pause: string;
-    resume: string;
+    undo: string;
     options: string;
     autoSolveOn: string;
     autoSolveOff: string;
-    status: { idle: string; playing: string; won: string; lost: string; paused: string };
+    status: { idle: string; playing: string; won: string; lost: string };
   };
   onReset: () => void;
   onToggleAI: () => void;
   onAiSpeedChange: (speed: 1 | 2 | 4 | 8 | 16) => void;
   onToggleProbabilities: () => void;
-  onTogglePause: () => void;
+  onUndo: () => void;
   onOpenOptions: () => void;
 }
 
@@ -36,13 +34,12 @@ const buttonClass = 'ui-button inline-flex h-10 items-center rounded-md px-4 tex
 
 export const HUD = ({
   status,
-  paused,
+  canUndo,
   lives,
   timer,
   remainingMines,
   aiMode,
   aiSpeed,
-  pauseDisabled,
   autoSolveDisabled,
   showProbabilities,
   hideStatus = false,
@@ -53,7 +50,7 @@ export const HUD = ({
   onToggleAI,
   onAiSpeedChange,
   onToggleProbabilities,
-  onTogglePause,
+  onUndo,
   onOpenOptions
 }: Props) => {
   return (
@@ -61,8 +58,8 @@ export const HUD = ({
       {hidePrimaryControls ? null : (
         <div className="flex min-w-0 flex-wrap justify-end gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2 sm:gap-2">
           <button className={buttonClass} onClick={onReset}>{labels.newGame}</button>
-          <button className={buttonClass} onClick={onTogglePause} disabled={pauseDisabled}>
-            {paused ? labels.resume : labels.pause}
+          <button className={buttonClass} onClick={onUndo} disabled={!canUndo}>
+            {labels.undo}
           </button>
           {hideOptionsButton ? null : <button className={buttonClass} onClick={onOpenOptions}>{labels.options}</button>}
         </div>
@@ -104,7 +101,7 @@ export const HUD = ({
           <span>⏱ {`${timer.toFixed(1)}s`}</span>
           <span>❤️ {lives}</span>
           <span>🚩 {remainingMines}</span>
-          <span>{paused ? labels.status.paused : labels.status[status]}</span>
+          <span>{labels.status[status]}</span>
         </div>
       )}
     </div>
