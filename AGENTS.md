@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-This repository is currently specification-first: `CALUDE.md` contains the product and technical blueprint for a React + TypeScript + Vite Minesweeper PWA.
+This repository is currently specification-first: `CLAUDE.md` contains the product and technical blueprint for a React + TypeScript + Vite Minesweeper PWA.
 
 When implementing, follow the planned structure in `CALUDE.md`:
 - `src/core`: board generation, mine placement, flood fill, win/loss checks.
