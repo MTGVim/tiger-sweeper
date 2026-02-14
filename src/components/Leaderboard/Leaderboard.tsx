@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { Difficulty } from '../../core/types';
 import type { Messages } from '../../i18n/messages';
 
@@ -21,13 +21,19 @@ interface Props {
 }
 
 const difficultyOrder: Difficulty[] = ['easy', 'normal', 'hard'];
-const LEADERBOARD_TABLE_BASE_WIDTH = 460;
 const PAGE_SIZE = 10;
 type ModeFilter = 'none' | 'assist' | 'probability' | 'both';
 
+const formatLeaderboardDate = (createdAt: number) =>
+  new Intl.DateTimeFormat(undefined, {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).format(new Date(createdAt));
+
 export const Leaderboard = ({ entries, difficultyLabels, labels, onClear }: Props) => {
-  const tableHostRef = useRef<HTMLDivElement | null>(null);
-  const [tableHostWidth, setTableHostWidth] = useState(0);
   const [modeFilter, setModeFilter] = useState<ModeFilter>('none');
   const [collapsed, setCollapsed] = useState(true);
   const [pageByDifficulty, setPageByDifficulty] = useState<Record<Difficulty, number>>({
@@ -35,23 +41,6 @@ export const Leaderboard = ({ entries, difficultyLabels, labels, onClear }: Prop
     normal: 1,
     hard: 1
   });
-
-  useEffect(() => {
-    const el = tableHostRef.current;
-    if (!el) return;
-
-    const update = () => setTableHostWidth(el.clientWidth);
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(el);
-    window.addEventListener('resize', update);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', update);
-    };
-  }, []);
-
-  const tableScale = tableHostWidth > 0 ? Math.min(1, tableHostWidth / LEADERBOARD_TABLE_BASE_WIDTH) : 1;
   const filteredEntries = entries.filter((entry) => {
     if (modeFilter === 'both') return entry.autoSolveUsed && entry.probabilityAssistUsed;
     if (modeFilter === 'assist') return entry.autoSolveUsed && !entry.probabilityAssistUsed;
@@ -174,24 +163,15 @@ export const Leaderboard = ({ entries, difficultyLabels, labels, onClear }: Prop
                         </div>
                       ) : null}
                     </div>
-                    <div ref={tableHostRef} className="w-full">
-                      <div
-                        className="mx-auto overflow-hidden"
-                        style={{
-                          width: Math.round(LEADERBOARD_TABLE_BASE_WIDTH * tableScale),
-                          height: Math.round((34 + pageRows.length * 37) * tableScale)
-                        }}
-                      >
-                        <table
-                          className="w-[460px] text-center text-xs sm:text-sm"
-                          style={{ transform: `scale(${tableScale})`, transformOrigin: 'top left' }}
-                        >
+                    <div className="w-full">
+                      <div className="mx-auto w-full max-w-[460px] overflow-x-auto">
+                        <table className="w-full table-fixed text-center text-[11px] sm:text-sm">
                           <thead>
-                            <tr className="border-b border-[var(--border)] text-center text-xs uppercase tracking-wide text-gray-600">
-                              <th className="py-2 pr-2">{labels.rank}</th>
-                              <th className="py-2 pr-2">{labels.lives}</th>
-                              <th className="py-2 pr-2">{labels.time}</th>
-                              <th className="py-2 pr-2">{labels.date}</th>
+                            <tr className="border-b border-[var(--border)] text-center text-[10px] uppercase tracking-wide text-gray-600 sm:text-xs">
+                              <th className="w-[24%] px-1 py-2 sm:px-2">{labels.rank}</th>
+                              <th className="w-[16%] px-1 py-2 sm:px-2">{labels.lives}</th>
+                              <th className="w-[24%] px-1 py-2 sm:px-2">{labels.time}</th>
+                              <th className="w-[36%] px-1 py-2 sm:px-2">{labels.date}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -204,12 +184,14 @@ export const Leaderboard = ({ entries, difficultyLabels, labels, onClear }: Prop
                                     entry.autoSolveUsed || entry.probabilityAssistUsed ? 'bg-black/10' : ''
                                   }`}
                                 >
-                                  <td className="py-2 pr-2 font-semibold">
+                                  <td className="px-1 py-2 font-semibold sm:px-2">
                                     {`${entry.probabilityAssistUsed ? '👀' : ''}${entry.autoSolveUsed ? '🤖' : ''}#${rank}`}
                                   </td>
-                                  <td className="py-2 pr-2">{entry.lives}</td>
-                                  <td className="py-2 pr-2 font-mono">{entry.time.toFixed(1)}s</td>
-                                  <td className="py-2 pr-2 whitespace-nowrap">{new Date(entry.createdAt).toLocaleString()}</td>
+                                  <td className="px-1 py-2 sm:px-2">{entry.lives}</td>
+                                  <td className="px-1 py-2 font-mono sm:px-2">{entry.time.toFixed(1)}s</td>
+                                  <td className="px-1 py-2 font-mono whitespace-nowrap sm:px-2">
+                                    {formatLeaderboardDate(entry.createdAt)}
+                                  </td>
                                 </tr>
                               );
                             })}
