@@ -47,6 +47,9 @@ export interface Messages {
     close: string;
     themeToXp: string;
     themeToModern: string;
+    install: string;
+    installed: string;
+    installHint: string;
     sound: string;
     preset: string;
     presetSoft: string;
@@ -109,6 +112,9 @@ export const messages: Messages = {
     close: '닫기',
     themeToXp: 'XP 테마',
     themeToModern: '모던 테마',
+    install: '앱 설치',
+    installed: '앱 설치됨',
+    installHint: '설치 버튼이 보이지 않으면 브라우저 메뉴에서 "홈 화면에 추가"를 사용하세요.',
     sound: '사운드',
     preset: '프리셋',
     presetSoft: '부드러움',

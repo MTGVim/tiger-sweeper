@@ -127,7 +127,7 @@ export const App = () => {
   const [boardShakeSignal, setBoardShakeSignal] = useState(0);
   const [themeHydrated, setThemeHydrated] = useState(false);
 
-  usePwa();
+  const { canInstall, isInstalled, promptInstall } = usePwa();
 
   useEffect(() => {
     if (prevStatusRef.current !== state.status) {
@@ -560,6 +560,16 @@ export const App = () => {
               >
                 {state.theme === 'modern' ? t.options.themeToXp : t.options.themeToModern}
               </button>
+              <button
+                className="ui-button rounded-md px-3 py-2 text-sm"
+                onClick={() => {
+                  void promptInstall();
+                }}
+                disabled={!canInstall || isInstalled}
+              >
+                {isInstalled ? t.options.installed : t.options.install}
+              </button>
+              {!canInstall && !isInstalled ? <p className="px-1 text-xs opacity-80">{t.options.installHint}</p> : null}
             </div>
 
             <div className="mt-4 flex items-center justify-between gap-4">
