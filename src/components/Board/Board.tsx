@@ -59,7 +59,7 @@ export const Board = ({
   }, [shakeSignal]);
 
   return (
-    <div className="w-full max-w-full pb-1">
+    <div className="w-full max-w-full overflow-x-hidden pb-1">
       <div className={`relative mx-auto ${shaking ? styles.shake : ''}`} style={{ width: scaledWidth, height: scaledHeight }}>
         <div
           style={{
