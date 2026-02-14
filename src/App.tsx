@@ -503,9 +503,7 @@ export const App = () => {
             shakeSignal={boardShakeSignal}
             noticeMessage={
               state.status === 'won'
-                ? state.autoSolveUsed
-                  ? `You Win! ${probabilityPrefix}🤖`
-                  : `You Win! ${probabilityPrefix}😎`
+                ? 'Yahoo~oh.'
                 : state.status === 'lost'
                   ? `${probabilityPrefix}🤦`
                 : state.hintConfidence != null
