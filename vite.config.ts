@@ -10,7 +10,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'icons/icon-192.png', 'icons/icon-512.png'],
+      includeAssets: ['favicon.png', 'icons/icon-192.png', 'icons/icon-512.png', 'sounds/*.mp3', 'sounds/*.wav', 'sounds/*.ogg'],
       manifest: {
         name: 'Tiger-Sweeper',
         short_name: 'TigerSweeper',
@@ -37,7 +37,7 @@ export default defineConfig({
         clientsClaim: true,
         skipWaiting: true,
         navigateFallback: 'index.html',
-        globPatterns: ['**/*.{js,css,html,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,png,svg,mp3,wav,ogg}'],
         runtimeCaching: [
           {
             urlPattern: /.*\.(png|jpg|jpeg|svg)/,
