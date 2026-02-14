@@ -48,6 +48,8 @@ yarn test       # 테스트 실행
 
 `main` 브랜치 푸시 시 `.github/workflows/deploy.yml`이 자동 실행되어 Pages에 배포됩니다.
 
+- 서비스 URL: `https://mtgvim.github.io/tiger-sweeper/`
+
 - 빌드 시 `BASE_PATH=/${repo-name}/`가 적용되도록 워크플로우에 설정되어 있습니다.
 - Pages 설정은 저장소에서 `GitHub Actions` 기반으로 활성화되어 있어야 합니다.
 
