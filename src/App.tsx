@@ -374,6 +374,7 @@ export const App = () => {
               autoSolveDisabled={autoSolveDisabled}
               showProbabilities={state.showProbabilities}
               hideStatus
+              hidePrimaryControls
               labels={t.hud}
               onReset={handleNewGame}
               onToggleAI={() => dispatch({ type: 'TOGGLE_AI' })}
@@ -388,14 +389,33 @@ export const App = () => {
         </div>
 
         <div className="sticky top-2 z-20 mt-3 mx-auto w-full max-w-[486px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
-          <div className="mt-2 flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">
-            <span>⏱ {timerText}</span>
-            <span>❤️ {state.lives}</span>
-            <span>🚩 {state.remainingMines}</span>
-            <span>{statusLabel}</span>
-          </div>
-          <div className="mt-1 rounded-md border border-[var(--border)] bg-white/75 px-2 py-1 text-[11px] font-bold leading-none">
-            {currentStreak.kind === 'win' ? '🔥' : currentStreak.kind === 'lose' ? '💥' : '➖'} {streakLabel}
+          <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+            <div className="min-w-0">
+              <div className="mt-2 flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">
+                <span>⏱ {timerText}</span>
+                <span>❤️ {state.lives}</span>
+                <span>🚩 {state.remainingMines}</span>
+                <span>{statusLabel}</span>
+              </div>
+              <div className="mt-1 rounded-md border border-[var(--border)] bg-white/75 px-2 py-1 text-[11px] font-bold leading-none">
+                {currentStreak.kind === 'win' ? '🔥' : currentStreak.kind === 'lose' ? '💥' : '➖'} {streakLabel}
+              </div>
+            </div>
+            <div className="flex min-w-0 flex-wrap justify-end gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2 sm:w-[168px] sm:flex-col sm:justify-start">
+              <button className="ui-button rounded-md px-3 py-2 text-sm" onClick={handleNewGame}>
+                {t.hud.newGame}
+              </button>
+              <button
+                className="ui-button rounded-md px-3 py-2 text-sm"
+                onClick={() => dispatch({ type: 'TOGGLE_PAUSE' })}
+                disabled={pauseDisabled}
+              >
+                {state.paused ? t.hud.resume : t.hud.pause}
+              </button>
+              <button className="ui-button rounded-md px-3 py-2 text-sm" onClick={openOptions}>
+                {t.hud.options}
+              </button>
+            </div>
           </div>
         </div>
 

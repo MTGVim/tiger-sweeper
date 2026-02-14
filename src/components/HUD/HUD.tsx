@@ -13,6 +13,7 @@ interface Props {
   showProbabilities: boolean;
   hideStatus?: boolean;
   hideOptionsButton?: boolean;
+  hidePrimaryControls?: boolean;
   labels: {
     newGame: string;
     probability: string;
@@ -47,6 +48,7 @@ export const HUD = ({
   showProbabilities,
   hideStatus = false,
   hideOptionsButton = false,
+  hidePrimaryControls = false,
   labels,
   onReset,
   onToggleAI,
@@ -57,13 +59,15 @@ export const HUD = ({
 }: Props) => {
   return (
     <div className="mb-3 grid min-w-0 gap-2 sm:gap-3">
-      <div className="flex min-w-0 flex-wrap justify-end gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2 sm:gap-2">
-        <button className={buttonClass} onClick={onReset}>{labels.newGame}</button>
-        <button className={buttonClass} onClick={onTogglePause} disabled={pauseDisabled}>
-          {paused ? labels.resume : labels.pause}
-        </button>
-        {hideOptionsButton ? null : <button className={buttonClass} onClick={onOpenOptions}>{labels.options}</button>}
-      </div>
+      {hidePrimaryControls ? null : (
+        <div className="flex min-w-0 flex-wrap justify-end gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2 sm:gap-2">
+          <button className={buttonClass} onClick={onReset}>{labels.newGame}</button>
+          <button className={buttonClass} onClick={onTogglePause} disabled={pauseDisabled}>
+            {paused ? labels.resume : labels.pause}
+          </button>
+          {hideOptionsButton ? null : <button className={buttonClass} onClick={onOpenOptions}>{labels.options}</button>}
+        </div>
+      )}
       <div className="flex min-w-0 flex-wrap items-start justify-end gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2 sm:gap-2">
         <div className="relative inline-flex flex-col items-end">
           <button
