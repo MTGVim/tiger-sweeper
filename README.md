@@ -1,4 +1,5 @@
 # 🐯 Tiger-Sweeper
+<img width="613" height="787" alt="스크린샷 2026-02-14 오전 11 23 58" src="https://github.com/user-attachments/assets/6022b6e3-d247-4c88-87ca-ad3390e52b68" />
 
 React + TypeScript + Vite로 만든 마인스위퍼 웹앱입니다.  
 모바일 대응, PWA, 로컬 리더보드, 어시스트/확률 기능을 포함합니다.
