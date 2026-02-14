@@ -73,7 +73,7 @@ describe('game core', () => {
     expect(next[1][1].isFlagged).toBe(true);
   });
 
-  it('opens only adjacent 8 cells on number click without flood spread', () => {
+  it('flood-opens connected empty area when safe number click opens a zero cell', () => {
     const board = createEmptyBoard('easy');
     board[0][0].isMine = true;
     const counted = calculateAdjacentCounts(board);
@@ -83,6 +83,6 @@ describe('game core', () => {
     const next = openSafeNeighborsFromNumber(counted, 1, 1);
 
     expect(next[2][2].isOpen).toBe(true);
-    expect(next[3][3].isOpen).toBe(false);
+    expect(next[3][3].isOpen).toBe(true);
   });
 });

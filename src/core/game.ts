@@ -135,7 +135,7 @@ export const openSafeNeighborsFromNumber = (board: Board, x: number, y: number):
   if (remainingMines !== 0) return next;
 
   for (const n of unopened) {
-    n.isOpen = true;
+    floodOpenFrom(next, n);
   }
   return next;
 };
