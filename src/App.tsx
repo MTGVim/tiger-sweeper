@@ -114,6 +114,9 @@ export const App = () => {
   const prevStatusRef = useRef(state.status);
   const prevLivesRef = useRef(state.lives);
   const prevFlagCountRef = useRef(state.board.flat().filter((cell) => cell.isFlagged).length);
+  const undoHoldTimeoutRef = useRef<number | null>(null);
+  const undoHoldIntervalRef = useRef<number | null>(null);
+  const suppressUndoClickRef = useRef(false);
   const boardHostRef = useRef<HTMLDivElement | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => loadLeaderboard());
   const [streaks, setStreaks] = useState<StreaksByDifficulty>(() => loadStreaks());
@@ -289,14 +292,14 @@ export const App = () => {
       ) {
         return;
       }
-      if (state.undoStack.length === 0) return;
+      if (state.status === 'won' || state.undoStack.length === 0) return;
       event.preventDefault();
       dispatch({ type: 'UNDO' });
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [dispatch, state.undoStack.length]);
+  }, [dispatch, state.status, state.undoStack.length]);
 
   const handleNewGame = () => {
     dispatch({ type: 'RESET' });
@@ -342,7 +345,7 @@ export const App = () => {
   const boardColumns = state.board[0]?.length ?? 0;
   const boardPixelWidth = boardColumns * state.cellSize + Math.max(0, boardColumns - 1) * 1 + 10;
   const boardScale = boardHostWidth > 0 ? Math.min(1, boardHostWidth / boardPixelWidth) : 1;
-  const canUndo = state.undoStack.length > 0;
+  const canUndo = state.status !== 'won' && state.undoStack.length > 0;
   const autoSolveDisabled = false;
   const t = messages;
   const statusLabel = t.hud.status[state.status];
@@ -357,6 +360,35 @@ export const App = () => {
       : currentStreak.kind === 'win'
         ? `${difficultyLabelForStreak} 연승 ${currentStreak.count}`
         : `${difficultyLabelForStreak} 연패 ${currentStreak.count}`;
+  const dispatchUndo = () => dispatch({ type: 'UNDO' });
+  const stopUndoHold = () => {
+    if (undoHoldTimeoutRef.current != null) {
+      window.clearTimeout(undoHoldTimeoutRef.current);
+      undoHoldTimeoutRef.current = null;
+    }
+    if (undoHoldIntervalRef.current != null) {
+      window.clearInterval(undoHoldIntervalRef.current);
+      undoHoldIntervalRef.current = null;
+    }
+    if (suppressUndoClickRef.current) {
+      window.setTimeout(() => {
+        suppressUndoClickRef.current = false;
+      }, 0);
+    }
+  };
+  const startUndoHold = () => {
+    if (!canUndo) return;
+    suppressUndoClickRef.current = true;
+    dispatchUndo();
+    stopUndoHold();
+    undoHoldTimeoutRef.current = window.setTimeout(() => {
+      undoHoldIntervalRef.current = window.setInterval(() => {
+        dispatchUndo();
+      }, 90);
+    }, 260);
+  };
+
+  useEffect(() => () => stopUndoHold(), []);
 
   return (
     <div className="grid min-h-screen place-items-center p-2 sm:p-4">
@@ -429,7 +461,21 @@ export const App = () => {
               </button>
               <button
                 className="ui-button inline-flex h-[34px] min-w-[56px] flex-none items-center justify-center rounded-md px-2 text-[10px] leading-none sm:min-w-[64px]"
-                onClick={() => dispatch({ type: 'UNDO' })}
+                onClick={(event) => {
+                  if (suppressUndoClickRef.current) {
+                    suppressUndoClickRef.current = false;
+                    event.preventDefault();
+                    return;
+                  }
+                  dispatchUndo();
+                }}
+                onPointerDown={(event) => {
+                  if (event.button !== 0) return;
+                  startUndoHold();
+                }}
+                onPointerUp={stopUndoHold}
+                onPointerLeave={stopUndoHold}
+                onPointerCancel={stopUndoHold}
                 disabled={!canUndo}
               >
                 {t.hud.undo}

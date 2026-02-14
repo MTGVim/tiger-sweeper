@@ -387,6 +387,7 @@ const reducer = (state: GameState, action: Action): GameState => {
     case 'SET_SOUND_PRESET':
       return { ...state, soundPreset: action.preset };
     case 'UNDO': {
+      if (state.status === 'won') return state;
       const snapshot = state.undoStack[state.undoStack.length - 1];
       if (!snapshot) return state;
       return {
