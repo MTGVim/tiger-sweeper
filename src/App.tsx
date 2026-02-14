@@ -390,7 +390,7 @@ export const App = () => {
 
         <div className="sticky top-2 z-20 mt-3 mx-auto w-full max-w-[486px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
           <div className="flex min-w-0 flex-wrap items-stretch gap-2">
-            <div className="flex min-w-[180px] flex-1 flex-col justify-between">
+            <div className="flex min-w-[180px] flex-1 flex-col justify-between gap-2">
               <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">
                 <span>⏱ {timerText}</span>
                 <span>❤️ {state.lives}</span>
