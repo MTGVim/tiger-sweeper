@@ -3,7 +3,7 @@ import type { Difficulty, DifficultyConfig } from './types';
 export const DIFFICULTIES: Record<Difficulty, DifficultyConfig> = {
   easy: { width: 9, height: 9, mines: 10 },
   normal: { width: 8, height: 32, mines: 40 },
-  hard: { width: 10, height: 38, mines: 72 }
+  hard: { width: 12, height: 40, mines: 99 }
 };
 
 export const getBoardConfig = (difficulty: Difficulty): DifficultyConfig => {
