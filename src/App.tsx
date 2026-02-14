@@ -389,7 +389,7 @@ export const App = () => {
         </div>
 
         <div className="sticky top-2 z-20 mt-3 mx-auto w-full max-w-[486px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
-          <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
             <div className="min-w-0">
               <div className="mt-2 flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">
                 <span>⏱ {timerText}</span>
@@ -401,18 +401,18 @@ export const App = () => {
                 {currentStreak.kind === 'win' ? '🔥' : currentStreak.kind === 'lose' ? '💥' : '➖'} {streakLabel}
               </div>
             </div>
-            <div className="flex min-w-0 flex-wrap justify-end gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2 sm:w-[168px] sm:flex-col sm:justify-start">
-              <button className="ui-button rounded-md px-3 py-2 text-sm" onClick={handleNewGame}>
+            <div className="flex min-w-0 w-[126px] flex-col justify-start gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2">
+              <button className="ui-button rounded-md px-2 py-1.5 text-[11px] leading-none" onClick={handleNewGame}>
                 {t.hud.newGame}
               </button>
               <button
-                className="ui-button rounded-md px-3 py-2 text-sm"
+                className="ui-button rounded-md px-2 py-1.5 text-[11px] leading-none"
                 onClick={() => dispatch({ type: 'TOGGLE_PAUSE' })}
                 disabled={pauseDisabled}
               >
                 {state.paused ? t.hud.resume : t.hud.pause}
               </button>
-              <button className="ui-button rounded-md px-3 py-2 text-sm" onClick={openOptions}>
+              <button className="ui-button rounded-md px-2 py-1.5 text-[11px] leading-none" onClick={openOptions}>
                 {t.hud.options}
               </button>
             </div>
