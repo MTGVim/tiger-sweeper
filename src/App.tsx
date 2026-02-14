@@ -401,7 +401,7 @@ export const App = () => {
                 {currentStreak.kind === 'win' ? '🔥' : currentStreak.kind === 'lose' ? '💥' : '➖'} {streakLabel}
               </div>
             </div>
-            <div className="flex min-w-0 w-[126px] flex-col justify-start gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2">
+            <div className="flex min-w-0 flex-wrap justify-end gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2">
               <button className="ui-button rounded-md px-2 py-1.5 text-[11px] leading-none" onClick={handleNewGame}>
                 {t.hud.newGame}
               </button>
