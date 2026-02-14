@@ -389,30 +389,30 @@ export const App = () => {
         </div>
 
         <div className="sticky top-2 z-20 mt-3 mx-auto w-full max-w-[486px] rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
-          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
-            <div className="min-w-0">
-              <div className="mt-2 flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">
+          <div className="flex min-w-0 flex-wrap items-stretch gap-2">
+            <div className="flex min-w-[180px] flex-1 flex-col justify-between">
+              <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 p-2 text-xs font-bold sm:p-3 sm:text-base">
                 <span>⏱ {timerText}</span>
                 <span>❤️ {state.lives}</span>
                 <span>🚩 {state.remainingMines}</span>
                 <span>{statusLabel}</span>
               </div>
-              <div className="mt-1 rounded-md border border-[var(--border)] bg-white/75 px-2 py-1 text-[11px] font-bold leading-none">
+              <div className="flex h-[26px] items-center rounded-md border border-[var(--border)] bg-white/75 px-2 py-1 text-[11px] font-bold leading-none">
                 {currentStreak.kind === 'win' ? '🔥' : currentStreak.kind === 'lose' ? '💥' : '➖'} {streakLabel}
               </div>
             </div>
-            <div className="flex min-w-0 flex-wrap justify-end gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2">
-              <button className="ui-button rounded-md px-2 py-1.5 text-[11px] leading-none" onClick={handleNewGame}>
+            <div className="flex h-16 min-w-[180px] flex-1 flex-wrap content-center items-center self-stretch justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-1.5">
+              <button className="ui-button inline-flex h-[34px] min-w-[56px] flex-none items-center justify-center rounded-md px-2 text-[10px] leading-none sm:min-w-[64px]" onClick={handleNewGame}>
                 {t.hud.newGame}
               </button>
               <button
-                className="ui-button rounded-md px-2 py-1.5 text-[11px] leading-none"
+                className="ui-button inline-flex h-[34px] min-w-[56px] flex-none items-center justify-center rounded-md px-2 text-[10px] leading-none sm:min-w-[64px]"
                 onClick={() => dispatch({ type: 'TOGGLE_PAUSE' })}
                 disabled={pauseDisabled}
               >
                 {state.paused ? t.hud.resume : t.hud.pause}
               </button>
-              <button className="ui-button rounded-md px-2 py-1.5 text-[11px] leading-none" onClick={openOptions}>
+              <button className="ui-button inline-flex h-[34px] min-w-[56px] flex-none items-center justify-center rounded-md px-2 text-[10px] leading-none sm:min-w-[64px]" onClick={openOptions}>
                 {t.hud.options}
               </button>
             </div>

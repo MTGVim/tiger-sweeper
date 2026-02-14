@@ -32,8 +32,7 @@ interface Props {
   onOpenOptions: () => void;
 }
 
-const buttonClass =
-  'ui-button rounded-md px-3 py-2 text-sm';
+const buttonClass = 'ui-button inline-flex h-10 items-center rounded-md px-4 text-sm';
 
 export const HUD = ({
   status,
@@ -68,30 +67,28 @@ export const HUD = ({
           {hideOptionsButton ? null : <button className={buttonClass} onClick={onOpenOptions}>{labels.options}</button>}
         </div>
       )}
-      <div className="flex min-w-0 flex-wrap items-start justify-end gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2 sm:gap-2">
-        <div className="relative inline-flex flex-col items-end">
+      <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 p-2 sm:gap-2">
+        <div className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-white/70 px-2 py-1 text-xs">
+          {[1, 4, 16].map((speed) => (
+            <button
+              key={speed}
+              className={`ui-button inline-flex h-7 min-w-8 items-center justify-center rounded px-1.5 text-[11px] leading-none ${aiSpeed === speed ? 'bg-[var(--btn-bg-active)] font-semibold translate-y-[1px]' : ''}`}
+              onClick={() => onAiSpeedChange(speed as 1 | 2 | 4 | 8 | 16)}
+              aria-pressed={aiSpeed === speed}
+            >
+              x{speed}
+            </button>
+          ))}
+        </div>
+        <div className="inline-flex items-center">
           <button
-            className={`${buttonClass} ml-auto ${aiMode ? 'bg-[var(--btn-bg-active)] shadow-[inset_-1px_-1px_0_var(--btn-hi),inset_1px_1px_0_var(--btn-lo)] translate-y-[1px]' : ''}`}
+            className={`${buttonClass} ${aiMode ? 'bg-[var(--btn-bg-active)] shadow-[inset_-1px_-1px_0_var(--btn-hi),inset_1px_1px_0_var(--btn-lo)] translate-y-[1px]' : ''}`}
             onClick={onToggleAI}
             disabled={autoSolveDisabled}
             aria-pressed={aiMode}
           >
             {aiMode ? labels.autoSolveOn : labels.autoSolveOff}
           </button>
-          {aiMode ? (
-            <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-white/70 px-2 py-1 text-xs">
-              {[1, 2, 4, 8, 16].map((speed) => (
-                <button
-                  key={speed}
-                  className={`rounded px-1.5 py-0.5 ${aiSpeed === speed ? 'bg-[var(--btn-bg-active)] font-semibold' : ''}`}
-                  onClick={() => onAiSpeedChange(speed as 1 | 2 | 4 | 8 | 16)}
-                  aria-pressed={aiSpeed === speed}
-                >
-                  x{speed}
-                </button>
-              ))}
-            </div>
-          ) : null}
         </div>
         <button
           className={`${buttonClass} ${showProbabilities ? 'bg-[var(--btn-bg-active)] shadow-[inset_-1px_-1px_0_var(--btn-hi),inset_1px_1px_0_var(--btn-lo)] translate-y-[1px]' : ''}`}
