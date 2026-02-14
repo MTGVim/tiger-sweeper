@@ -121,7 +121,6 @@ export const App = () => {
   const [pressedCells, setPressedCells] = useState<Set<string>>(new Set());
   const [boardHostWidth, setBoardHostWidth] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const [mobileInputMode, setMobileInputMode] = useState<'open' | 'flag'>('open');
   const [boardShakeSignal, setBoardShakeSignal] = useState(0);
   const [themeHydrated, setThemeHydrated] = useState(false);
 
@@ -275,11 +274,6 @@ export const App = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (isMobile) return;
-    setMobileInputMode('open');
-  }, [isMobile]);
-
   const handleNewGame = () => {
     dispatch({ type: 'RESET' });
     if (state.status === 'won') return;
@@ -405,14 +399,14 @@ export const App = () => {
           </div>
         </div>
 
-        <div ref={boardHostRef} className={`mt-5 w-full min-w-0 ${isMobile ? 'pb-20' : ''}`}>
+        <div ref={boardHostRef} className="mt-5 w-full min-w-0">
           <Board
             board={state.board}
             cellSize={state.cellSize}
             boardScale={boardScale}
             disabled={state.paused || optionsOpen}
             obscured={state.paused || optionsOpen}
-            interactionMode={isMobile ? mobileInputMode : 'open'}
+            interactionMode="open"
             enableLongPressHaptics={isMobile && !state.aiMode}
             pausedLabel={t.board.paused}
             hintCell={state.hintCell}
@@ -447,7 +441,7 @@ export const App = () => {
           />
         </div>
 
-        <div className="mx-auto mt-4 w-full max-w-[486px]">
+        <div className="mx-auto mt-2 w-full max-w-[486px]">
           <Leaderboard
             entries={leaderboard}
             difficultyLabels={t.difficulty}
@@ -508,22 +502,6 @@ export const App = () => {
 
           </div>
         </div>
-      ) : null}
-
-      {isMobile ? (
-        <button
-          className="fixed bottom-4 right-4 z-30 inline-flex items-center gap-1 rounded-xl border border-[var(--border)] bg-[var(--panel)] px-3 py-2 text-xs font-bold shadow-[0_10px_24px_rgb(0_0_0_/_24%)]"
-          onClick={() => setMobileInputMode((prev) => (prev === 'open' ? 'flag' : 'open'))}
-          aria-pressed={mobileInputMode === 'flag'}
-          aria-label={
-            mobileInputMode === 'open'
-              ? '현재 지뢰 모드, 탭하면 깃발 모드'
-              : '현재 깃발 모드, 탭하면 지뢰 모드'
-          }
-        >
-          <span>{mobileInputMode === 'open' ? '💣' : '🚩'}</span>
-          <span>{mobileInputMode === 'open' ? '지뢰' : '깃발'}</span>
-        </button>
       ) : null}
 
     </div>
