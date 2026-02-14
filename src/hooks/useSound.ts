@@ -109,7 +109,7 @@ const waveByEvent: Partial<Record<SoundEvent, OscillatorType>> = {
 
 const EXTERNAL_SOUND_FILES: Partial<Record<SoundEvent, string>> = {
   explode: 'sounds/vine-boom.mp3',
-  win: 'sounds/yahoo-yodel.mp3',
+  win: 'sounds/victory_fanfare.mp3',
   lose: 'sounds/ocean-meme.mp3'
 };
 
