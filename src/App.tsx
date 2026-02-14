@@ -423,7 +423,7 @@ export const App = () => {
                 {currentStreak.kind === 'win' ? '🔥' : currentStreak.kind === 'lose' ? '💥' : '➖'} {streakLabel}
               </div>
             </div>
-            <div className="flex h-[68px] min-w-[180px] flex-1 content-center items-center self-stretch justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 px-1.5 py-2 max-[420px]:py-1">
+            <div className="flex h-[68px] min-w-[180px] flex-1 content-center items-center self-stretch justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/60 px-1.5 py-2 max-[420px]:h-[48px] max-[420px]:py-1">
               <button className="ui-button inline-flex h-[34px] min-w-[56px] flex-none items-center justify-center rounded-md px-2 text-[10px] leading-none sm:min-w-[64px]" onClick={handleNewGame}>
                 {t.hud.newGame}
               </button>
