@@ -43,6 +43,7 @@ export const Cell = ({
 }: Props) => {
   const touchTimerRef = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
+  const suppressContextMenuRef = useRef(false);
   const prevFlaggedRef = useRef(cell.isFlagged);
   const [flagBurstToken, setFlagBurstToken] = useState(0);
   const [showFlagBurst, setShowFlagBurst] = useState(false);
@@ -134,6 +135,10 @@ export const Cell = ({
       onContextMenu={(e) => {
         e.preventDefault();
         if (obscured) return;
+        if (suppressContextMenuRef.current) {
+          suppressContextMenuRef.current = false;
+          return;
+        }
         onFlag(cell.x, cell.y);
       }}
       onTouchStart={() => {
@@ -144,6 +149,7 @@ export const Cell = ({
         clearTouchTimer();
         touchTimerRef.current = window.setTimeout(() => {
           suppressClickRef.current = true;
+          suppressContextMenuRef.current = true;
           const changed = onFlag(cell.x, cell.y);
           if (changed) vibrate();
         }, 350);
