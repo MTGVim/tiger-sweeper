@@ -24,14 +24,32 @@
     "@types/node": "^22.7.4",
     "@types/react": "^18.3.9",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.2",
-    "autoprefixer": "^10.4.20",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.5.0",
     "jsdom": "^25.0.1",
-    "postcss": "^8.4.47",
+    "postcss": "^8.5.13",
     "tailwindcss": "^3.4.13",
     "typescript": "^5.6.2",
-    "vite": "^5.4.8",
-    "vite-plugin-pwa": "^0.20.5",
-    "vitest": "^2.1.2"
+    "vite": "^7.3.2",
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^4.1.5"
+  },
+  "resolutions": {
+    "ajv": "^8.20.0",
+    "brace-expansion": "^5.0.5",
+    "lodash": "^4.18.1",
+    "glob/minimatch": "^10.2.5",
+    "filelist/minimatch": "^5.1.8",
+    "micromatch/picomatch": "^2.3.2",
+    "anymatch/picomatch": "^2.3.2",
+    "readdirp/picomatch": "^2.3.2",
+    "@rollup/pluginutils/picomatch": "^2.3.2",
+    "tinyglobby/picomatch": "^4.0.4",
+    "vitest/picomatch": "^4.0.4",
+    "vite/picomatch": "^4.0.4",
+    "postcss": "^8.5.13",
+    "workbox-build/rollup": "^2.80.0",
+    "serialize-javascript": "^7.0.5",
+    "vite": "^7.3.2"
   }
 }
