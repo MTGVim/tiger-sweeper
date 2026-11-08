@@ -65,3 +65,11 @@ yarn test       # 테스트 실행
 ## 라이선스
 
 `LICENSE` 파일을 참고하세요.
+
+## 보안 빌드 의존성
+
+Workbox의 glob은 14.x, minimatch는 11.x, serialize-javascript는 7.x 보안 수정 버전을 사용합니다. filelist는 기존 함수 API를 사용하므로 호환되는 minimatch 5.1.9를 유지합니다.
+
+<!-- shortcut: 상류 의존성 제약 때문에 resolutions로 보안 버전을 지정하며 filelist의 함수 API만 예외로 유지합니다. Workbox가 수정 버전을 직접 지원하면 resolutions를 재검토합니다. -->
+
+🤖 본 보안 빌드 안내는 AI가 작성했습니다.
